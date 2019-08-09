@@ -86,3 +86,8 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+merge_from_upstream:
+	git remote add upstream https://github.com/wwj718/codelab_adapter_client;
+	git fetch upstream;
+	git merge upstream/master;
