@@ -4,7 +4,6 @@ import time
 import logging
 import sys
 import msgpack
-import psutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 import asyncio
@@ -75,18 +74,6 @@ class MessageNodeAio(metaclass=ABCMeta):
         else:
             self.event_loop = asyncio.get_event_loop()
 
-        # establish the zeromq sub and pub sockets and connect to the adapter
-        self.context = zmq.asyncio.Context()
-
-        # block
-        self.subscriber = self.context.socket(zmq.SUB)
-        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.subscriber_port
-        self.subscriber.connect(connect_string)
-
-        self.publisher = self.context.socket(zmq.PUB)
-        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.publisher_port
-        self.publisher.connect(connect_string)
-
     def __str__(self):
         return self.name
 
@@ -134,11 +121,22 @@ class MessageNodeAio(metaclass=ABCMeta):
         This method may be overwritten to meet the needs
         of the application before handling received messages.
         """
+        # 放在init 可能会有线程问题
+        # establish the zeromq sub and pub sockets and connect to the adapter
+        self.context = zmq.asyncio.Context()  # zmq.Context()
+        self.subscriber = self.context.socket(zmq.SUB)
+        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.subscriber_port
+        self.subscriber.connect(connect_string)
+
+        self.publisher = self.context.socket(zmq.PUB)
+        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.publisher_port
+        self.publisher.connect(connect_string)
+
         if self.subscriber_list:
             for topic in self.subscriber_list:
                 await self.set_subscriber_topic(topic)
 
-        while True:
+        while self._running:
             data = await self.subscriber.recv_multipart()
             topic = data[0].decode()
             payload = await self.unpack(data[1])
@@ -187,4 +185,3 @@ class AdapterNodeAio(MessageNodeAio):
         self.ADAPTER_TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         self.SCRATCH_TOPIC = SCRATCH_TOPIC  # message topic: the message from scratch
         self.EXTENSION_ID = "eim"
-

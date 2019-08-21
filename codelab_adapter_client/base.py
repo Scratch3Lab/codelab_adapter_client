@@ -21,7 +21,7 @@ class MessageNode(metaclass=ABCMeta):
             codelab_adapter_ip_address=None,
             subscriber_port='16103',
             publisher_port='16130',
-            subscriber_list=None,
+            subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
             loop_time=0.1,
             connect_time=0.1,
             external_message_processor=None,
@@ -191,8 +191,8 @@ class AdapterNode(MessageNode):
         :param loop_time: Receive loop sleep time.
         :param connect_time: Allow the node to connect to adapter
         '''
-        kwargs["subscriber_list"] = [SCRATCH_TOPIC, EXTENSIONS_OPERATE_TOPIC]
         super().__init__(*args, **kwargs)
+        # todo TOPIC作为参数
         self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         self.EXTENSION_ID = "eim"
         # todo  handler: https://github.com/offu/WeRoBot/blob/master/werobot/robot.py#L590
@@ -232,8 +232,9 @@ class AdapterNode(MessageNode):
         """
         self.logger.info("please set the  method to your handle method")
 
-    def _exit_message_handle(self, topic, payload):
-        self.logger.info("please set the  method to your handle method")
+    def exit_message_handle(self, topic, payload):
+        self.pub_extension_statu_change(self.EXTENSION_ID, "stop")
+        self.terminate()
 
     def message_template(self):
         '''
@@ -247,7 +248,7 @@ class AdapterNode(MessageNode):
         message_template = {
             "payload": {
                 "content": "content",
-                "sender": self.name, # adapter/nodes/<classname>
+                "sender": self.name,  # adapter/nodes/<classname>
                 "extension_id": self.EXTENSION_ID
             }
         }
@@ -286,8 +287,17 @@ class AdapterNode(MessageNode):
         payload["content"] = content
         self.publish_payload(payload, topic)
 
-    def pub_status(self, extension_name, statu):
+    def pub_status(self, extension_statu_map):
+        '''
+        todo 重构
+        '''
         topic = EXTENSIONS_STATUS_TOPIC
+        payload = {}
+        payload["content"] = extension_statu_map
+        self.publish_payload(payload, topic)
+
+    def pub_extension_statu_change(self, extension_name, statu):
+        topic = EXTENSION_STATU_CHANGE_TOPIC
         extension_id = self.EXTENSION_ID
         payload = {
             "extension_id": extension_id,
@@ -307,8 +317,34 @@ class AdapterNode(MessageNode):
 
         all the sub message
         process handler
+
+        default sub: [SCRATCH_TOPIC, NODES_OPERATE_TOPIC]
         """
+        if self.external_message_processor:
+            # handle all sub messages
+            # to handle websocket message
+            self.external_message_processor(topic, payload)
+
+        if topic == NODES_OPERATE_TOPIC:
+            '''
+            分布式: 主动停止 使用extension_id
+                extension也是node
+            UI触发关闭命令
+            '''
+            command = payload.get('content')
+            if command == 'stop':
+                # 暂不处理extension
+                if payload.get("extension_id") == self.EXTENSION_ID:
+                    self.logger.info(f"stop {self}")
+                    self.exit_message_handle(topic, payload)
+            return  # stop here
+
         if topic in [SCRATCH_TOPIC]:
+            '''
+            x 接受来自scratch的消息
+            v 接受所有订阅主题的消息
+            插件业务类
+            '''
             if payload.get("extension_id") == self.EXTENSION_ID:
                 self.extension_message_handle(topic, payload)
                 '''
@@ -316,12 +352,6 @@ class AdapterNode(MessageNode):
                 for handler in handlers:
                     handler(topic, payload)
                 '''
-        if topic == EXTENSIONS_OPERATE_TOPIC:
-            if payload.get("extension_id") == self.EXTENSION_ID:
-                self._exit_message_handle(topic, payload)
-        # adapter_core/extensions/operate {'content': 'stop', 'extension_id': 'extension_eim_monitor'}
-        if self.external_message_processor:
-            self.external_message_processor(topic, payload)
 
     def terminate(self):
         '''

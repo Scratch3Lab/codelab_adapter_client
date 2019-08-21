@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pyzmq', 'msgpack-python','psutil']
+requirements = ['pyzmq', 'msgpack-python','loguru']
 
 setup_requirements = [
     'pytest-runner',
@@ -53,6 +53,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/wwj718/codelab_adapter_client',
-    version='0.7.0',
+    version='0.9.3',
     zip_safe=False,
 )
