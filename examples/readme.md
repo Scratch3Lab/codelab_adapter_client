@@ -21,9 +21,11 @@ opencv
 ### GUI开关
 guizero
 
-pygame
+Pygame/Pygame Zero
 
 play
+
+p5py
 
 [Play: 像学习Scratch那样学习Python](https://blog.just4fun.site/replit-play.html)
 
