@@ -1,20 +1,18 @@
 '''
-pip install pygame python-sonic
-  
-instal sonic pi
+pip install pgzero
+
+pgrun x.py
 '''
-import pygame
 from codelab_adapter_client import HANode
 import time
 
-pygame.init()
-pygame.mixer.init()
-pygame.display.set_mode()
-pygame.display.set_caption('cube symphony')
-
+'''
 hand_clap = pygame.mixer.Sound("src/Hand Clap.wav")
 cowbell = pygame.mixer.Sound("src/Large Cowbell.wav")
+'''
 
+beep = tone.create('A3', 0.5) # pgzero 内建对象
+    
 
 class Neverland(HANode):
     def __init__(self):
@@ -27,7 +25,7 @@ class Neverland(HANode):
         print(entity, action, entity_id)
         if entity == "cube":
             if action == "slide":
-                hand_clap.play()
+                beep.play()
 
     def run(self):
         self.receive_loop()
@@ -39,14 +37,3 @@ try:
     neverland.run()
 except KeyboardInterrupt:
     neverland.terminate()
-'''
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit(); #sys.exit() if sys is imported
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_h:
-                hand_clap.play()
-            if event.key == pygame.K_cc:
-                cowbell.play()
-'''

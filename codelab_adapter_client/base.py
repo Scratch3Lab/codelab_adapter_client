@@ -334,7 +334,7 @@ class AdapterNode(MessageNode):
             command = payload.get('content')
             if command == 'stop':
                 # 暂不处理extension
-                if payload.get("extension_id") == self.EXTENSION_ID:
+                if payload.get("extension_id") == self.EXTENSION_ID or payload.get("extension_id") == "all":
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return  # stop here

@@ -1,5 +1,5 @@
 '''
-pip install pygame python-sonic
+pip install python-sonic
   
 instal sonic pi
 '''

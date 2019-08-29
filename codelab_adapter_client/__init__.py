@@ -2,7 +2,7 @@
 
 __author__ = """Wenjie Wu"""
 __email__ = 'wuwenjie718@gmail.com'
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 from .base import MessageNode, AdapterNode, JupyterNode, SimpleNode
 from .hass import HANode
