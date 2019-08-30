@@ -102,3 +102,4 @@ ENV/
 .mypy_cache/
 env
 venv3.6/
+venv3.7
