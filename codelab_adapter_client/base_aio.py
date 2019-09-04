@@ -184,4 +184,5 @@ class AdapterNodeAio(MessageNodeAio):
 
         self.ADAPTER_TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         self.SCRATCH_TOPIC = SCRATCH_TOPIC  # message topic: the message from scratch
-        self.EXTENSION_ID = "eim"
+        if not hasattr(self, 'EXTENSION_ID'):
+            self.EXTENSION_ID = "eim"
