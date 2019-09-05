@@ -44,6 +44,7 @@ class MessageNode(metaclass=ABCMeta):
         self.subscriber_port = subscriber_port
         self.publisher_port = publisher_port
         self.subscriber_list = subscriber_list
+        self.subscribed_topics = set() # genetate sub topics self.subscribed_topics.add
         self.receive_loop_idle_addition = receive_loop_idle_addition
         self.external_message_processor = external_message_processor
         self.connect_time = connect_time
@@ -79,6 +80,7 @@ class MessageNode(metaclass=ABCMeta):
         if self.subscriber_list:
             for topic in self.subscriber_list:
                 self.set_subscriber_topic(topic)
+                self.subscribed_topics.add(topic)
 
     def __str__(self):
         return self.name
@@ -114,6 +116,7 @@ class MessageNode(metaclass=ABCMeta):
             raise TypeError('Subscriber topic must be string')
 
         self.subscriber.setsockopt(zmq.SUBSCRIBE, topic.encode())
+        self.subscribed_topics.add(topic)
 
     def publish_payload(self, payload, topic=''):
         if not type(topic) is str:

@@ -6,9 +6,6 @@
 import pytest
 
 
-from codelab_adapter_client import codelab_adapter_client
-
-
 @pytest.fixture
 def response():
     """Sample pytest fixture.
