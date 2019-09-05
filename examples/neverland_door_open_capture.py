@@ -1,6 +1,9 @@
+'''
+pip install codelab_adapter_client opencv-python
+
+# ref: https://gpiozero.readthedocs.io/en/stable/recipes.html#button-controlled-camera
+'''
 from codelab_adapter_client import HANode
-import subprocess
-import time
 from datetime import datetime
 import cv2
 
