@@ -193,7 +193,8 @@ class AdapterNode(MessageNode):
         '''
         super().__init__(*args, **kwargs)
         # todo TOPIC作为参数
-        self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
+        if not hasattr(self, 'TOPIC'):
+            self.TOPIC = ADAPTER_TOPIC # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
             self.EXTENSION_ID = "eim"
         # todo  handler: https://github.com/offu/WeRoBot/blob/master/werobot/robot.py#L590
