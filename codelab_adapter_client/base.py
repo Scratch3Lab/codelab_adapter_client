@@ -44,7 +44,8 @@ class MessageNode(metaclass=ABCMeta):
         self.subscriber_port = subscriber_port
         self.publisher_port = publisher_port
         self.subscriber_list = subscriber_list
-        self.subscribed_topics = set() # genetate sub topics self.subscribed_topics.add
+        self.subscribed_topics = set(
+        )  # genetate sub topics self.subscribed_topics.add
         self.receive_loop_idle_addition = receive_loop_idle_addition
         self.external_message_processor = external_message_processor
         self.connect_time = connect_time
@@ -195,15 +196,13 @@ class AdapterNode(MessageNode):
         :param connect_time: Allow the node to connect to adapter
         '''
         super().__init__(*args, **kwargs)
-        # todo TOPIC作为参数
         if not hasattr(self, 'TOPIC'):
-            self.TOPIC = ADAPTER_TOPIC # message topic: the message from adapter
+            self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
             self.EXTENSION_ID = "eim"
         # todo  handler: https://github.com/offu/WeRoBot/blob/master/werobot/robot.py#L590
         # self._handlers = {k: [] for k in self.message_types}
         # self._handlers['all'] = []
-
 
     '''
     def add_handler(self, func, type='all'):
@@ -294,9 +293,6 @@ class AdapterNode(MessageNode):
         self.publish_payload(payload, topic)
 
     def pub_status(self, extension_statu_map):
-        '''
-        todo 重构
-        '''
         topic = EXTENSIONS_STATUS_TOPIC
         payload = {}
         payload["content"] = extension_statu_map
@@ -340,7 +336,9 @@ class AdapterNode(MessageNode):
             command = payload.get('content')
             if command == 'stop':
                 # 暂不处理extension
-                if payload.get("extension_id") == self.EXTENSION_ID or payload.get("extension_id") == "all":
+                if payload.get(
+                        "extension_id") == self.EXTENSION_ID or payload.get(
+                            "extension_id") == "all":
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return  # stop here
@@ -370,13 +368,11 @@ class AdapterNode(MessageNode):
 class JupyterNode(AdapterNode):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.TOPIC = ADAPTER_TOPIC
 
 
 class SimpleNode(JupyterNode):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.TOPIC = ADAPTER_TOPIC
 
     def simple_publish(self, content):
         message = {"payload": {"content": ""}}
