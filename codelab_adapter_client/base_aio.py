@@ -28,6 +28,7 @@ class MessageNodeAio(metaclass=ABCMeta):
             external_message_processor=None,
             receive_loop_idle_addition=None,
             event_loop=None,
+            token=None
     ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -

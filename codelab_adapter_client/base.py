@@ -26,6 +26,7 @@ class MessageNode(metaclass=ABCMeta):
             connect_time=0.1,
             external_message_processor=None,
             receive_loop_idle_addition=None,
+            token=None,
     ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
@@ -41,6 +42,7 @@ class MessageNode(metaclass=ABCMeta):
             self.name = name
         else:
             self.name = f'adapter/nodes/{type(self).__name__}'  # instance name(self is instance)
+        self.token = token
         self.subscriber_port = subscriber_port
         self.publisher_port = publisher_port
         self.subscriber_list = subscriber_list
@@ -243,6 +245,8 @@ class AdapterNode(MessageNode):
 
     def message_template(self):
         '''
+        todo: attr
+
         topic: self.TOPIC
         payload:
             extension_id?
@@ -254,7 +258,8 @@ class AdapterNode(MessageNode):
             "payload": {
                 "content": "content",
                 "sender": self.name,  # adapter/nodes/<classname>
-                "extension_id": self.EXTENSION_ID
+                "extension_id": self.EXTENSION_ID,
+                "token": self.token
             }
         }
         return message_template
@@ -288,23 +293,22 @@ class AdapterNode(MessageNode):
         }
         '''
         extension_id = self.EXTENSION_ID
-        payload = {"type": type, "extension_id": extension_id}
+        payload = self.message_template()["payload"]
+        payload["type"] = type
         payload["content"] = content
         self.publish_payload(payload, topic)
 
     def pub_status(self, extension_statu_map):
         topic = EXTENSIONS_STATUS_TOPIC
-        payload = {}
+        payload = self.message_template()["payload"]
         payload["content"] = extension_statu_map
         self.publish_payload(payload, topic)
 
     def pub_extension_statu_change(self, extension_name, statu):
         topic = EXTENSION_STATU_CHANGE_TOPIC
         extension_id = self.EXTENSION_ID
-        payload = {
-            "extension_id": extension_id,
-            "extension_name": extension_name
-        }
+        payload = self.message_template()["payload"]
+        payload["extension_name"] = extension_name
         payload["content"] = statu
         self.publish_payload(payload, topic)
 
