@@ -1,7 +1,9 @@
 '''
 pip install pgzero
 
-pgrun x.py
+pgzrun x.py
+
+doc: https://pygame-zero.readthedocs.io/en/stable/index.html
 '''
 from codelab_adapter_client import HANode
 import time
