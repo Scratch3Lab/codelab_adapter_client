@@ -299,6 +299,9 @@ class AdapterNode(MessageNode):
         self.publish_payload(payload, topic)
 
     def pub_status(self, extension_statu_map):
+        '''
+        pub node status
+        '''
         topic = EXTENSIONS_STATUS_TOPIC
         payload = self.message_template()["payload"]
         payload["content"] = extension_statu_map
