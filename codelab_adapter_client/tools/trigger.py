@@ -50,7 +50,7 @@ def trigger():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", dest="codelab_adapter_ip_address", default="None",
                         help="None or IP address used by CodeLab Adapter")
-    parser.add_argument("-n", dest="name", default="Monitor", help="Set name in banner")
+    parser.add_argument("-n", dest="name", default="Trigger", help="Set name in banner")
     parser.add_argument("-p", dest="publisher_port", default='16130',
                         help="Publisher IP port")
     parser.add_argument("-s", dest="subscriber_port", default='16103',

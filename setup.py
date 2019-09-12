@@ -46,13 +46,14 @@ setup(
     entry_points={
         'console_scripts': [
             'codelab-message-monitor = codelab_adapter_client.tools.monitor:monitor',
-            'codelab-message-trigger = codelab_adapter_client.tools.trigger:trigger'
+            'codelab-message-trigger = codelab_adapter_client.tools.trigger:trigger',
+            'codelab-message-pub = codelab_adapter_client.tools.pub:pub'
         ],
     },
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/wwj718/codelab_adapter_client',
-    version='0.9.8',
+    version='0.9.9',
     zip_safe=False,
 )
