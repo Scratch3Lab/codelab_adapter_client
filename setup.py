@@ -9,8 +9,8 @@ with open('README.rst') as readme_file:
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
-
-requirements = ['pyzmq', 'msgpack-python','loguru']
+REQUIRES_PYTHON = ">=3.6.0"
+requirements = ['pyzmq', 'msgpack-python', 'loguru']
 
 setup_requirements = [
     'pytest-runner',
@@ -19,6 +19,7 @@ setup_requirements = [
 test_requirements = ['pytest', 'pytest-mock']
 
 setup(
+    python_requires=REQUIRES_PYTHON,
     author="Wenjie Wu",
     author_email='wuwenjie718@gmail.com',
     classifiers=[
@@ -42,7 +43,9 @@ setup(
     include_package_data=True,
     keywords='codelab_adapter_client',
     name='codelab_adapter_client',
-    packages= ['codelab_adapter_client','codelab_adapter_client.tools'], # find_packages(include=['codelab_adapter_client','codelab_adapter_client.tools']),
+    packages=[
+        'codelab_adapter_client', 'codelab_adapter_client.tools'
+    ],  # find_packages(include=['codelab_adapter_client','codelab_adapter_client.tools']),
     entry_points={
         'console_scripts': [
             'codelab-message-monitor = codelab_adapter_client.tools.monitor:monitor',
