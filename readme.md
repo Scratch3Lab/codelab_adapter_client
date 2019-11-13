@@ -19,6 +19,7 @@ from codelab_adapter_client import AdapterNode
 ```
 codelab-message-monitor # subscribes to all messages and print both topic and payload.
 codelab-message-trigger # pub the message in json file(`/tmp/message.json`).
+codelab-message-pub -j '{"topic":"eim/test","payload":{"content":"test contenst"}}'
 ```
 
 `/tmp/message.json`:
