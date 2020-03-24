@@ -72,18 +72,12 @@ class MessageNode(metaclass=ABCMeta):
 
         # establish the zeromq sub and pub sockets and connect to the adapter
         self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        sub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.subscriber_port}'
-        self.subscriber.connect(sub_connect_string)
+
         self.publisher = self.context.socket(zmq.PUB)
         pub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.publisher_port}'
         self.publisher.connect(pub_connect_string)
         # Allow enough time for the TCP connection to the adapter complete.
         time.sleep(self.connect_time)  # block 0.3 -> 0.1
-        if self.subscriber_list:
-            for topic in self.subscriber_list:
-                self.set_subscriber_topic(topic)
-                self.subscribed_topics.add(topic)
 
     def __str__(self):
         return self.name
@@ -117,9 +111,8 @@ class MessageNode(metaclass=ABCMeta):
     def set_subscriber_topic(self, topic):
         if not type(topic) is str:
             raise TypeError('Subscriber topic must be string')
-
-        self.subscriber.setsockopt(zmq.SUBSCRIBE, topic.encode())
-        self.subscribed_topics.add(topic)
+        # 
+        self.subscriber_list.append(topic)
 
     def publish_payload(self, payload, topic=''):
         if not type(topic) is str:
@@ -135,6 +128,15 @@ class MessageNode(metaclass=ABCMeta):
         """
         This is the receive loop for receiving sub messages.
         """
+        self.subscriber = self.context.socket(zmq.SUB)
+        sub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.subscriber_port}'
+        self.subscriber.connect(sub_connect_string)
+
+        if self.subscriber_list:
+            for topic in self.subscriber_list:
+                self.subscriber.setsockopt(zmq.SUBSCRIBE, topic.encode())
+                self.subscribed_topics.add(topic)
+
         while self._running:
             try:
                 data = self.subscriber.recv_multipart(zmq.NOBLOCK)  # NOBLOCK
@@ -156,7 +158,7 @@ class MessageNode(metaclass=ABCMeta):
             '''
 
     def receive_loop_as_thread(self):
-        threaded(self.receive_loop)()
+        threaded(self.receive_loop)() # note: zmq socket not thread safe
 
     def message_handle(self, topic, payload):
         """
@@ -173,7 +175,7 @@ class MessageNode(metaclass=ABCMeta):
         time.sleep(0.1)
         # todo 等待线程退出后再回收否则可能出错
         self.publisher.close()
-        self.subscriber.close()
+        self.subscriber.close() # todo 
         self.context.term()
 
 

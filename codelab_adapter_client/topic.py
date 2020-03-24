@@ -14,7 +14,7 @@ ADAPTER_STATUS_TOPIC = "core/status" # adapter core info
 EXTENSIONS_STATUS_TRIGGER_TOPIC = "core/extensions/status/trigger"
 EXTENSION_STATU_CHANGE_TOPIC = "core/extension/statu/change"
 NOTIFICATION_TOPIC = "core/notification"
-
+GUI_TOPIC = "gui/operate"
 # ble
 ADAPTER_BLE_TOPIC = "adapter/ble"
 SCRATCH_BLE_TOPIC = "scratch/ble"

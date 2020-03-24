@@ -25,7 +25,7 @@ class Monitor(AdapterNode):
         except zmq.error.ZMQError:
             sys.exit()
         except KeyboardInterrupt:
-            sys.exit()
+            sys.exit(0)
 
     def message_handle(self, topic, payload):
         print(topic, payload)
