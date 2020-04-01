@@ -91,7 +91,7 @@ class MessageNodeAio(metaclass=ABCMeta):
 
         if not type(topic) is str:
             raise TypeError('Subscriber topic must be string')
-
+        # todo: base.py
         self.subscriber.setsockopt(zmq.SUBSCRIBE, topic.encode())
 
     async def pack(self, data):

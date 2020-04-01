@@ -1,26 +1,31 @@
-import zmq
 import time
 import logging
 import sys
-import msgpack
-# import psutil
+import os
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
+import msgpack
+import zmq
+# import psutil
+
 from codelab_adapter_client.topic import *
 from codelab_adapter_client.utils import threaded
+from codelab_adapter_client._version import protocol_version
+from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
 
 
 class MessageNode(metaclass=ABCMeta):
+    # jupyter client Session: https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L249
     def __init__(
             self,
             name='',
             logger=logger,
             codelab_adapter_ip_address=None,
             subscriber_port='16103',
-            publisher_port='16130',
+            publisher_port='16130', #write to conf file(jupyter)
             subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
             loop_time=0.1,
             connect_time=0.1,
@@ -41,7 +46,7 @@ class MessageNode(metaclass=ABCMeta):
         if name:
             self.name = name
         else:
-            self.name = f'adapter/nodes/{type(self).__name__}'  # instance name(self is instance)
+            self.name = type(self).__name__ # instance name(self is instance)
         self.token = token
         self.subscriber_port = subscriber_port
         self.publisher_port = publisher_port
@@ -77,7 +82,7 @@ class MessageNode(metaclass=ABCMeta):
         pub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.publisher_port}'
         self.publisher.connect(pub_connect_string)
         # Allow enough time for the TCP connection to the adapter complete.
-        time.sleep(self.connect_time)  # block 0.3 -> 0.1
+        # time.sleep(self.connect_time)  # block 0.3 -> 0.1
 
     def __str__(self):
         return self.name
@@ -111,14 +116,13 @@ class MessageNode(metaclass=ABCMeta):
     def set_subscriber_topic(self, topic):
         if not type(topic) is str:
             raise TypeError('Subscriber topic must be string')
-        # 
         self.subscriber_list.append(topic)
 
     def publish_payload(self, payload, topic=''):
         if not type(topic) is str:
             raise TypeError('Publish topic must be string', 'topic')
 
-        # create message pack payload
+        # pack
         message = msgpack.packb(payload, use_bin_type=True)
 
         pub_envelope = topic.encode()
@@ -139,9 +143,11 @@ class MessageNode(metaclass=ABCMeta):
 
         while self._running:
             try:
+                # https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L814
                 data = self.subscriber.recv_multipart(zmq.NOBLOCK)  # NOBLOCK
                 topic = data[0].decode()
-                payload = msgpack.unpackb(data[1], raw=False)
+                # unpackb
+                payload = msgpack.unpackb(data[1], raw=False) # replace unpackb
                 self.message_handle(topic, payload)
             # if no messages are available, zmq throws this exception
             except zmq.error.Again:
@@ -158,7 +164,8 @@ class MessageNode(metaclass=ABCMeta):
             '''
 
     def receive_loop_as_thread(self):
-        threaded(self.receive_loop)() # note: zmq socket not thread safe
+        # warn: zmq socket is not threadsafe
+        threaded(self.receive_loop)()
 
     def message_handle(self, topic, payload):
         """
@@ -175,7 +182,7 @@ class MessageNode(metaclass=ABCMeta):
         time.sleep(0.1)
         # todo 等待线程退出后再回收否则可能出错
         self.publisher.close()
-        self.subscriber.close() # todo 
+        self.subscriber.close()
         self.context.term()
 
 
@@ -246,25 +253,9 @@ class AdapterNode(MessageNode):
         self.terminate()
 
     def message_template(self):
-        '''
-        todo: attr
-
-        topic: self.TOPIC
-        payload:
-            extension_id?
-            content
-            sender
-            timestamp?
-        '''
-        message_template = {
-            "payload": {
-                "content": "content",
-                "sender": self.name,  # adapter/nodes/<classname>
-                "extension_id": self.EXTENSION_ID,
-                "token": self.token
-            }
-        }
-        return message_template
+        # _message_template(sender,username,extension_id,token) dict
+        template = _message_template(self.name, self.EXTENSION_ID, self.token)
+        return template
 
     def publish(self, message):
         assert isinstance(message, dict)
