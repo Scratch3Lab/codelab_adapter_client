@@ -77,7 +77,7 @@ class MessageNode(metaclass=ABCMeta):
 
         # establish the zeromq sub and pub sockets and connect to the adapter
         self.context = zmq.Context()
-
+        # 以便于一开始就发送消息，尽管连接还未建立
         self.publisher = self.context.socket(zmq.PUB)
         pub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.publisher_port}'
         self.publisher.connect(pub_connect_string)
@@ -253,7 +253,7 @@ class AdapterNode(MessageNode):
         self.terminate()
 
     def message_template(self):
-        # _message_template(sender,username,extension_id,token) dict
+        # _message_template(sender,extension_id,token)
         template = _message_template(self.name, self.EXTENSION_ID, self.token)
         return template
 
@@ -290,6 +290,26 @@ class AdapterNode(MessageNode):
         payload["type"] = type
         payload["content"] = content
         self.publish_payload(payload, topic)
+
+    def pub_device_connect_status(self):
+        '''
+        msg_type?or topic?
+        different content
+            device name
+            extension_id
+            status: connect/disconnect
+        '''
+        pass
+
+    def stdin_ask(self):
+        '''
+        https://jupyter-client.readthedocs.io/en/stable/messaging.html#messages-on-the-stdin-router-dealer-channel
+        use future(set future)? or sync
+            pub/sub channel
+        a special topic or msg_type
+            build in
+        '''
+        pass
 
     def pub_status(self, extension_statu_map):
         '''

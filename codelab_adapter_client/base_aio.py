@@ -78,6 +78,17 @@ class MessageNodeAio(metaclass=ABCMeta):
         else:
             self.event_loop = asyncio.get_event_loop()
 
+        # 放在init 可能会有线程问题, 但如此依赖允许在消息管道建立之前，发送消息。
+        # establish the zeromq sub and pub sockets and connect to the adapter
+        self.context = zmq.asyncio.Context()  # zmq.Context()
+        self.subscriber = self.context.socket(zmq.SUB)
+        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.subscriber_port
+        self.subscriber.connect(connect_string)
+
+        self.publisher = self.context.socket(zmq.PUB)
+        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.publisher_port
+        self.publisher.connect(connect_string)
+
     def __str__(self):
         return self.name
 
@@ -125,16 +136,6 @@ class MessageNodeAio(metaclass=ABCMeta):
         This method may be overwritten to meet the needs
         of the application before handling received messages.
         """
-        # 放在init 可能会有线程问题
-        # establish the zeromq sub and pub sockets and connect to the adapter
-        self.context = zmq.asyncio.Context()  # zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.subscriber_port
-        self.subscriber.connect(connect_string)
-
-        self.publisher = self.context.socket(zmq.PUB)
-        connect_string = "tcp://" + self.codelab_adapter_ip_address + ':' + self.publisher_port
-        self.publisher.connect(connect_string)
 
         if self.subscriber_list:
             for topic in self.subscriber_list:
