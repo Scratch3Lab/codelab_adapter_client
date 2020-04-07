@@ -82,7 +82,7 @@ class MessageNode(metaclass=ABCMeta):
         pub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.publisher_port}'
         self.publisher.connect(pub_connect_string)
         # Allow enough time for the TCP connection to the adapter complete.
-        # time.sleep(self.connect_time)  # block 0.3 -> 0.1
+        time.sleep(self.connect_time/2)  # block 0.3 -> 0.1, to support init pub
 
     def __str__(self):
         return self.name
