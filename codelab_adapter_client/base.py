@@ -158,9 +158,13 @@ class MessageNode(metaclass=ABCMeta):
             try:
                 # https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L814
                 data = self.subscriber.recv_multipart(zmq.NOBLOCK)  # NOBLOCK
-                topic = data[0].decode()
                 # unpackb
-                payload = msgpack.unpackb(data[1], raw=False) # replace unpackb
+                try:
+                    # some data is invalid
+                    topic = data[0].decode()
+                    payload = msgpack.unpackb(data[1], raw=False) # replace unpackb
+                except Exception as e:
+                    self.logger.error(str(e))
                 self.message_handle(topic, payload)
             # if no messages are available, zmq throws this exception
             except zmq.error.Again:

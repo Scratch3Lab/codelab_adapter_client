@@ -157,8 +157,13 @@ class MessageNodeAio(metaclass=ABCMeta):
             try:
                 data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
                 # data = await self.subscriber.recv_multipart()
-                topic = data[0].decode()
-                payload = await self.unpack(data[1])
+                try:
+                    # some data is invalid
+                    topic = data[0].decode()
+                    payload = await self.unpack(data[1])
+                except Exception as e:
+                    self.logger.error(str(e))
+                    # todo
                 await self.message_handle(topic, payload)
             except zmq.error.Again:
                 await asyncio.sleep(self.loop_time)
