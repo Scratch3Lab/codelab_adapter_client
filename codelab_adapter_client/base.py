@@ -10,7 +10,7 @@ import zmq
 # import psutil
 
 from codelab_adapter_client.topic import *
-from codelab_adapter_client.utils import threaded
+from codelab_adapter_client.utils import threaded, TokenBucket
 from codelab_adapter_client._version import protocol_version
 from codelab_adapter_client.session import _message_template
 
@@ -32,6 +32,8 @@ class MessageNode(metaclass=ABCMeta):
             external_message_processor=None,
             receive_loop_idle_addition=None,
             token=None,
+            bucket_token=100,
+            bucket_fill_rate=100
     ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
@@ -40,7 +42,10 @@ class MessageNode(metaclass=ABCMeta):
         :param publisher_port: codelab_adapter publisher port.
         :param loop_time: Receive loop sleep time.
         :param connect_time: Allow the node to connect to adapter
+        :param token: for safety
+        :param bucket_token/bucket_fill_rate: rate limit
         '''
+        self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self.logger = logger
         self._running = True  # use it to control Python thread, work with self.terminate()
         if name:
@@ -122,11 +127,19 @@ class MessageNode(metaclass=ABCMeta):
         if not type(topic) is str:
             raise TypeError('Publish topic must be string', 'topic')
 
-        # pack
-        message = msgpack.packb(payload, use_bin_type=True)
+        if self.bucket.consume(1):
+            # pack
+            message = msgpack.packb(payload, use_bin_type=True)
 
-        pub_envelope = topic.encode()
-        self.publisher.send_multipart([pub_envelope, message])
+            pub_envelope = topic.encode()
+            self.publisher.send_multipart([pub_envelope, message])
+        else:
+            error_text = "publish error, rate limit!"
+            self.logger.error(error_text)
+            time.sleep(0.1)
+            # from AdapterNode
+            self.pub_notification(error_text, type="ERROR")
+
 
     def receive_loop(self):
         """

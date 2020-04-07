@@ -10,7 +10,7 @@ import asyncio
 
 from codelab_adapter_client.topic import *
 # from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTENSIONS_OPERATE_TOPIC
-from codelab_adapter_client.utils import threaded
+from codelab_adapter_client.utils import threaded, TokenBucket
 from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,9 @@ class MessageNodeAio(metaclass=ABCMeta):
             external_message_processor=None,
             receive_loop_idle_addition=None,
             event_loop=None,
-            token=None
+            token=None,
+            bucket_token=100,
+            bucket_fill_rate=100
     ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
@@ -39,7 +41,10 @@ class MessageNodeAio(metaclass=ABCMeta):
         :param publisher_port: codelab_adapter publisher port.
         :param loop_time: Receive loop sleep time.
         :param connect_time: Allow the node to connect to adapter
+        :param token: for safety
+        :param bucket_token/bucket_fill_rate: rate limit
         '''
+        self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self._running = True  # use it to receive_loop
         self.logger = logger
         if name:
@@ -125,10 +130,16 @@ class MessageNodeAio(metaclass=ABCMeta):
         if not type(topic) is str:
             raise TypeError('Publish topic must be string', 'topic')
 
-        message = await self.pack(payload)
+        if  self.bucket.consume(1):
+            message = await self.pack(payload)
 
-        pub_envelope = topic.encode()
-        await self.publisher.send_multipart([pub_envelope, message])
+            pub_envelope = topic.encode()
+            await self.publisher.send_multipart([pub_envelope, message])
+        else:
+            error_text = f"publish error, rate limit!"
+            self.logger.error(error_text)
+            await asyncio.sleep(0.1)
+            await self.pub_notification(error_text, type="ERROR")
 
     async def receive_loop(self):
         """
@@ -209,17 +220,17 @@ class AdapterNodeAio(MessageNodeAio):
         return template
     
     async def publish(self, message):
-        assert isinstance(message, dict)
-        topic = message.get('topic')
-        payload = message.get("payload")
-        if not topic:
-            topic = self.TOPIC
-        if not payload.get("extension_id"):
-            payload["extension_id"] = self.EXTENSION_ID
-        self.logger.debug(
-            f"{self.name} publish: topic: {topic} payload:{payload}")
+            assert isinstance(message, dict)
+            topic = message.get('topic')
+            payload = message.get("payload")
+            if not topic:
+                topic = self.TOPIC
+            if not payload.get("extension_id"):
+                payload["extension_id"] = self.EXTENSION_ID
+            self.logger.debug(
+                f"{self.name} publish: topic: {topic} payload:{payload}")
 
-        await self.publish_payload(payload, topic)
+            await self.publish_payload(payload, topic)
 
     async def pub_notification(self, content, topic=NOTIFICATION_TOPIC, type="INFO"):
         '''
