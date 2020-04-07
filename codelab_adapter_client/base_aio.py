@@ -208,11 +208,14 @@ class AdapterNodeAio(MessageNodeAio):
 
         self.ADAPTER_TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         self.SCRATCH_TOPIC = SCRATCH_TOPIC  # message topic: the message from scratch
-        if not hasattr(self, 'EXTENSION_ID'):
-            self.EXTENSION_ID = "eim"
         if not hasattr(self, 'TOPIC'):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
-
+        if not hasattr(self, 'EXTENSION_ID'):
+            self.EXTENSION_ID = "eim"
+        if not hasattr(self, 'EXTENSION_ID'):
+            self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
+        if not hasattr(self, 'EXTENSION_ID'):
+            self.WEIGHT = 0
 
     def message_template(self):
         # _message_template(sender,username,extension_id,token) dict
