@@ -271,7 +271,8 @@ class AdapterNode(MessageNode):
 
     def exit_message_handle(self, topic, payload):
         self.pub_extension_statu_change(self.EXTENSION_ID, "stop")
-        self.terminate()
+        if self._running:
+            self.terminate()
 
     def message_template(self):
         # _message_template(sender,extension_id,token)
@@ -377,9 +378,15 @@ class AdapterNode(MessageNode):
             command = payload.get('content')
             if command == 'stop':
                 # 暂不处理extension
+                self.logger.debug(f"node stop message: {payload}")
+                self.logger.debug(f"node self.name: {self.name}")
                 if payload.get(
                         "extension_id") == self.EXTENSION_ID or payload.get(
                             "extension_id") == "all":
+                    self.logger.info(f"stop {self}")
+                    self.exit_message_handle(topic, payload)
+                # 如果extension_name等于文件名，则触发关闭
+                if payload.get("extension_name") == self.name:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return  # stop here
@@ -402,8 +409,9 @@ class AdapterNode(MessageNode):
         '''
         stop thread
         '''
-        self.clean_up()
-        self.logger.info(f"{self} terminate!")
+        if self._running:
+            self.clean_up()
+            self.logger.info(f"{self} terminate!")
 
 
 class JupyterNode(AdapterNode):
