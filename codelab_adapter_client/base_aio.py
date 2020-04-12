@@ -216,7 +216,7 @@ class AdapterNodeAio(MessageNodeAio):
         if not hasattr(self, 'TOPIC'):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
-            self.EXTENSION_ID = "eim"
+            self.NODE_ID = "eim"
         if not hasattr(self, 'HELP_URL'):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
         if not hasattr(self, 'WEIGHT'):
@@ -235,7 +235,7 @@ class AdapterNodeAio(MessageNodeAio):
 
     def message_template(self):
         # _message_template(sender,username,extension_id,token) dict
-        template = _message_template(self.name, self.EXTENSION_ID, self.token)
+        template = _message_template(self.name, self.NODE_ID, self.token)
         return template
     
     async def publish(self, message):
@@ -245,7 +245,7 @@ class AdapterNodeAio(MessageNodeAio):
             if not topic:
                 topic = self.TOPIC
             if not payload.get("extension_id"):
-                payload["extension_id"] = self.EXTENSION_ID
+                payload["extension_id"] = self.NODE_ID
             self.logger.debug(
                 f"{self.name} publish: topic: {topic} payload:{payload}")
 
@@ -263,7 +263,7 @@ class AdapterNodeAio(MessageNodeAio):
             }
         }
         '''
-        extension_id = self.EXTENSION_ID
+        extension_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["type"] = type
         payload["content"] = content

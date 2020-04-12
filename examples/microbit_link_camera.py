@@ -10,7 +10,7 @@ content = 0
 class EIMNode(AdapterNode):
     def __init__(self):
         super().__init__()
-        self.EXTENSION_ID = "eim"
+        self.NODE_ID = "eim"
 
     def extension_message_handle(self, topic, payload):
         global content

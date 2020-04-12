@@ -16,7 +16,7 @@ class MicrobitNode(AdapterNode):
             logger=logger,
             external_message_processor=self.external_message_processor)
         self.TOPIC = SCRATCH_TOPIC
-        self.EXTENSION_ID = "eim/usbMicrobit"
+        self.NODE_ID = "eim/usbMicrobit"
         self.set_subscriber_topic(ADAPTER_TOPIC)
 
     def microbit_event(self, data):
@@ -26,7 +26,7 @@ class MicrobitNode(AdapterNode):
         # self.logger.info(f'the message payload from extention: {payload}')
         if topic == ADAPTER_TOPIC:
             extension_id = payload["extension_id"]
-            if extension_id == self.EXTENSION_ID:
+            if extension_id == self.NODE_ID:
                 content = payload["content"]
                 self.microbit_event(content)
 

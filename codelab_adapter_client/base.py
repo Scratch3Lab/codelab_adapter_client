@@ -227,7 +227,7 @@ class AdapterNode(MessageNode):
         if not hasattr(self, 'TOPIC'):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
-            self.EXTENSION_ID = "eim"
+            self.NODE_ID = "eim"
         if not hasattr(self, 'HELP_URL'):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
         if not hasattr(self, 'WEIGHT'):
@@ -280,13 +280,13 @@ class AdapterNode(MessageNode):
         self.logger.info("please set the  method to your handle method")
 
     def exit_message_handle(self, topic, payload):
-        self.pub_extension_statu_change(self.EXTENSION_ID, "stop")
+        self.pub_extension_statu_change(self.NODE_ID, "stop")
         if self._running:
             self.terminate()
 
     def message_template(self):
         # _message_template(sender,extension_id,token)
-        template = _message_template(self.name, self.EXTENSION_ID, self.token)
+        template = _message_template(self.name, self.NODE_ID, self.token)
         return template
 
     def publish(self, message):
@@ -296,14 +296,14 @@ class AdapterNode(MessageNode):
         if not topic:
             topic = self.TOPIC
         if not payload.get("extension_id"):
-            payload["extension_id"] = self.EXTENSION_ID
+            payload["extension_id"] = self.NODE_ID
         self.logger.debug(
             f"{self.name} publish: topic: {topic} payload:{payload}")
 
         self.publish_payload(payload, topic)
 
     def get_extension_id(self):
-        return self.EXTENSION_ID
+        return self.NODE_ID
 
     def pub_notification(self, content, topic=NOTIFICATION_TOPIC, type="INFO"):
         '''
@@ -317,7 +317,7 @@ class AdapterNode(MessageNode):
             }
         }
         '''
-        extension_id = self.EXTENSION_ID
+        extension_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["type"] = type
         payload["content"] = content
@@ -354,7 +354,7 @@ class AdapterNode(MessageNode):
 
     def pub_extension_statu_change(self, extension_name, statu):
         topic = EXTENSION_STATU_CHANGE_TOPIC
-        extension_id = self.EXTENSION_ID
+        extension_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["extension_name"] = extension_name
         payload["content"] = statu
@@ -393,9 +393,9 @@ class AdapterNode(MessageNode):
                 # 暂不处理extension
                 self.logger.debug(f"node stop message: {payload}")
                 self.logger.debug(f"node self.name: {self.name}")
-                # payload.get("extension_id") == self.EXTENSION_ID to stop extension
-                # f'eim/{payload.get("extension_name")}' == self.EXTENSION_ID to stop node (generate extension id)
-                if payload.get("extension_id") == self.EXTENSION_ID or payload.get("extension_id") == "all" or self._extension_name_to_extension_id(payload.get("extension_name")) == self.EXTENSION_ID:
+                # payload.get("extension_id") == self.NODE_ID to stop extension
+                # f'eim/{payload.get("extension_name")}' == self.NODE_ID to stop node (generate extension id)
+                if payload.get("extension_id") == self.NODE_ID or payload.get("extension_id") == "all" or self._extension_name_to_extension_id(payload.get("extension_name")) == self.NODE_ID:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return
@@ -406,7 +406,7 @@ class AdapterNode(MessageNode):
             v 接受所有订阅主题的消息
             插件业务类
             '''
-            if payload.get("extension_id") == self.EXTENSION_ID:
+            if payload.get("extension_id") == self.NODE_ID:
                 self.extension_message_handle(topic, payload)
                 '''
                 handlers = self.get_handlers(type="current_extension")
