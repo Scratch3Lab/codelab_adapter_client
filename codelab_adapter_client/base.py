@@ -228,9 +228,9 @@ class AdapterNode(MessageNode):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
             self.EXTENSION_ID = "eim"
-        if not hasattr(self, 'EXTENSION_ID'):
+        if not hasattr(self, 'HELP_URL'):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
-        if not hasattr(self, 'EXTENSION_ID'):
+        if not hasattr(self, 'WEIGHT'):
             self.WEIGHT = 0
         # todo  handler: https://github.com/offu/WeRoBot/blob/master/werobot/robot.py#L590
         # self._handlers = {k: [] for k in self.message_types}
@@ -258,6 +258,16 @@ class AdapterNode(MessageNode):
         self.add_handler(f, type='all')
         return f
     '''
+
+    def generate_extension_id(self, filename):
+        '''
+        extension_eim.py -> extension_eim
+        '''
+        extension_name = Path(filename).stem
+        return self._extension_name_to_extension_id(extension_name)
+
+    def _extension_name_to_extension_id(self, extension_name):
+        return f'eim/{extension_name}'
 
     # def extension_message_handle(self, f):
     def extension_message_handle(self, topic, payload):
@@ -372,24 +382,23 @@ class AdapterNode(MessageNode):
         if topic == NODES_OPERATE_TOPIC:
             '''
             分布式: 主动停止 使用extension_id
-                extension也是node
+                extension也是在此关闭，因为extension也是一种node
             UI触发关闭命令
             '''
             command = payload.get('content')
             if command == 'stop':
+                '''
+                to stop node/extension
+                '''
                 # 暂不处理extension
                 self.logger.debug(f"node stop message: {payload}")
                 self.logger.debug(f"node self.name: {self.name}")
-                if payload.get(
-                        "extension_id") == self.EXTENSION_ID or payload.get(
-                            "extension_id") == "all":
+                # payload.get("extension_id") == self.EXTENSION_ID to stop extension
+                # f'eim/{payload.get("extension_name")}' == self.EXTENSION_ID to stop node (generate extension id)
+                if payload.get("extension_id") == self.EXTENSION_ID or payload.get("extension_id") == "all" or self._extension_name_to_extension_id(payload.get("extension_name")) == self.EXTENSION_ID:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
-                # 如果extension_name等于文件名，则触发关闭
-                if payload.get("extension_name") == self.name:
-                    self.logger.info(f"stop {self}")
-                    self.exit_message_handle(topic, payload)
-            return  # stop here
+            return
 
         if topic in [SCRATCH_TOPIC]:
             '''

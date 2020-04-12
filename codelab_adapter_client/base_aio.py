@@ -217,10 +217,21 @@ class AdapterNodeAio(MessageNodeAio):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         if not hasattr(self, 'EXTENSION_ID'):
             self.EXTENSION_ID = "eim"
-        if not hasattr(self, 'EXTENSION_ID'):
+        if not hasattr(self, 'HELP_URL'):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
-        if not hasattr(self, 'EXTENSION_ID'):
+        if not hasattr(self, 'WEIGHT'):
             self.WEIGHT = 0
+
+    def generate_extension_id(self, filename):
+        '''
+        extension_eim.py -> extension_eim
+        '''
+        extension_name = Path(filename).stem
+        return self._extension_name_to_extension_id(extension_name)
+
+    def _extension_name_to_extension_id(self, extension_name):
+        return f'eim/{extension_name}'
+
 
     def message_template(self):
         # _message_template(sender,username,extension_id,token) dict
