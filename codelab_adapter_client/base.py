@@ -263,11 +263,11 @@ class AdapterNode(MessageNode):
         '''
         extension_eim.py -> extension_eim
         '''
-        extension_name = Path(filename).stem
-        return self._extension_name_to_node_id(extension_name)
+        node_name = Path(filename).stem
+        return self._node_name_to_node_id(node_name)
 
-    def _extension_name_to_node_id(self, extension_name):
-        return f'eim/{extension_name}'
+    def _node_name_to_node_id(self, node_name):
+        return f'eim/{node_name}'
 
     # def extension_message_handle(self, f):
     def extension_message_handle(self, topic, payload):
@@ -352,11 +352,11 @@ class AdapterNode(MessageNode):
         payload["content"] = extension_statu_map
         self.publish_payload(payload, topic)
 
-    def pub_extension_statu_change(self, extension_name, statu):
+    def pub_extension_statu_change(self, node_name, statu):
         topic = EXTENSION_STATU_CHANGE_TOPIC
         node_id = self.NODE_ID
         payload = self.message_template()["payload"]
-        payload["extension_name"] = extension_name
+        payload["node_name"] = node_name
         payload["content"] = statu
         self.publish_payload(payload, topic)
 
@@ -394,8 +394,8 @@ class AdapterNode(MessageNode):
                 self.logger.debug(f"node stop message: {payload}")
                 self.logger.debug(f"node self.name: {self.name}")
                 # payload.get("node_id") == self.NODE_ID to stop extension
-                # f'eim/{payload.get("extension_name")}' == self.NODE_ID to stop node (generate extension id)
-                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._extension_name_to_node_id(payload.get("extension_name")) == self.NODE_ID:
+                # f'eim/{payload.get("node_name")}' == self.NODE_ID to stop node (generate extension id)
+                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._node_name_to_node_id(payload.get("node_name")) == self.NODE_ID:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return

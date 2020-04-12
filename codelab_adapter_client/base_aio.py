@@ -226,11 +226,11 @@ class AdapterNodeAio(MessageNodeAio):
         '''
         extension_eim.py -> extension_eim
         '''
-        extension_name = Path(filename).stem
-        return self._extension_name_to_node_id(extension_name)
+        node_name = Path(filename).stem
+        return self._node_name_to_node_id(node_name)
 
-    def _extension_name_to_node_id(self, extension_name):
-        return f'eim/{extension_name}'
+    def _node_name_to_node_id(self, node_name):
+        return f'eim/{node_name}'
 
 
     def message_template(self):

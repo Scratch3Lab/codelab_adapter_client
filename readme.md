@@ -27,6 +27,6 @@ codelab-message-pub -j '{"topic":"eim/test","payload":{"content":"test contenst"
 ```json
 {
   "topic": "adapter_core/extensions/operate",
-  "payload": { "content": "start", "extension_name": "extension_eim" }
+  "payload": { "content": "start", "node_name": "extension_eim" }
 }
 ```
