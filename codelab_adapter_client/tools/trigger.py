@@ -40,7 +40,7 @@ class Trigger(AdapterNode):
     @threaded
     def run(self):
         while self._running:
-            # print(">>>self.publish({'topic':EXTENSIONS_OPERATE_TOPIC,'payload':{'content':'start', 'extension_id':'extension_eim2'}})")
+            # print(">>>self.publish({'topic':EXTENSIONS_OPERATE_TOPIC,'payload':{'content':'start', 'node_id':'extension_eim2'}})")
             code = input(">>>read json from /tmp/message.json (enter to run)")
             with open("/tmp/message.json") as f:
                 message = json.loads(f.read())

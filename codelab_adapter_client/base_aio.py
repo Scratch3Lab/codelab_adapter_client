@@ -222,19 +222,19 @@ class AdapterNodeAio(MessageNodeAio):
         if not hasattr(self, 'WEIGHT'):
             self.WEIGHT = 0
 
-    def generate_extension_id(self, filename):
+    def generate_node_id(self, filename):
         '''
         extension_eim.py -> extension_eim
         '''
         extension_name = Path(filename).stem
-        return self._extension_name_to_extension_id(extension_name)
+        return self._extension_name_to_node_id(extension_name)
 
-    def _extension_name_to_extension_id(self, extension_name):
+    def _extension_name_to_node_id(self, extension_name):
         return f'eim/{extension_name}'
 
 
     def message_template(self):
-        # _message_template(sender,username,extension_id,token) dict
+        # _message_template(sender,username,node_id,token) dict
         template = _message_template(self.name, self.NODE_ID, self.token)
         return template
     
@@ -244,8 +244,8 @@ class AdapterNodeAio(MessageNodeAio):
             payload = message.get("payload")
             if not topic:
                 topic = self.TOPIC
-            if not payload.get("extension_id"):
-                payload["extension_id"] = self.NODE_ID
+            if not payload.get("node_id"):
+                payload["node_id"] = self.NODE_ID
             self.logger.debug(
                 f"{self.name} publish: topic: {topic} payload:{payload}")
 
@@ -263,7 +263,7 @@ class AdapterNodeAio(MessageNodeAio):
             }
         }
         '''
-        extension_id = self.NODE_ID
+        node_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["type"] = type
         payload["content"] = content

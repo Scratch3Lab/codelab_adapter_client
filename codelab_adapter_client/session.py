@@ -130,11 +130,11 @@ def sign(self, msg_list):
 username = os.environ.get('USER', 'username') , # 3.0, Username for the Session. Default is your system username.
 
 
-def _message_template(sender,extension_id,token):
+def _message_template(sender,node_id,token):
     '''
         topic: self.TOPIC: channel
         payload:
-            extension_id? //类似jupyter kernel
+            node_id? //类似jupyter kernel
             content
             sender 类似 session_id 进程名字
             timestamp? date
@@ -151,7 +151,7 @@ def _message_template(sender,extension_id,token):
                 "content": "content", # string or dict
                 "sender": sender,  # like session (uuid)， adapter/nodes/<classname>
                 "username": username , # 3.0, Username for the Session. Default is your system username.
-                "extension_id": extension_id, # like jupyter kernel id/name
+                "node_id": node_id, # like jupyter kernel id/name
                 "message_id": "", # session + count # uuid
                 "message_type": "", # 3.0 deside content reply/req/pub
                 "token": token

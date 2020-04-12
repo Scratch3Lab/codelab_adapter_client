@@ -259,14 +259,14 @@ class AdapterNode(MessageNode):
         return f
     '''
 
-    def generate_extension_id(self, filename):
+    def generate_node_id(self, filename):
         '''
         extension_eim.py -> extension_eim
         '''
         extension_name = Path(filename).stem
-        return self._extension_name_to_extension_id(extension_name)
+        return self._extension_name_to_node_id(extension_name)
 
-    def _extension_name_to_extension_id(self, extension_name):
+    def _extension_name_to_node_id(self, extension_name):
         return f'eim/{extension_name}'
 
     # def extension_message_handle(self, f):
@@ -285,7 +285,7 @@ class AdapterNode(MessageNode):
             self.terminate()
 
     def message_template(self):
-        # _message_template(sender,extension_id,token)
+        # _message_template(sender,node_id,token)
         template = _message_template(self.name, self.NODE_ID, self.token)
         return template
 
@@ -295,14 +295,14 @@ class AdapterNode(MessageNode):
         payload = message.get("payload")
         if not topic:
             topic = self.TOPIC
-        if not payload.get("extension_id"):
-            payload["extension_id"] = self.NODE_ID
+        if not payload.get("node_id"):
+            payload["node_id"] = self.NODE_ID
         self.logger.debug(
             f"{self.name} publish: topic: {topic} payload:{payload}")
 
         self.publish_payload(payload, topic)
 
-    def get_extension_id(self):
+    def get_node_id(self):
         return self.NODE_ID
 
     def pub_notification(self, content, topic=NOTIFICATION_TOPIC, type="INFO"):
@@ -317,7 +317,7 @@ class AdapterNode(MessageNode):
             }
         }
         '''
-        extension_id = self.NODE_ID
+        node_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["type"] = type
         payload["content"] = content
@@ -328,7 +328,7 @@ class AdapterNode(MessageNode):
         msg_type?or topic?
         different content
             device name
-            extension_id
+            node_id
             status: connect/disconnect
         '''
         pass
@@ -354,7 +354,7 @@ class AdapterNode(MessageNode):
 
     def pub_extension_statu_change(self, extension_name, statu):
         topic = EXTENSION_STATU_CHANGE_TOPIC
-        extension_id = self.NODE_ID
+        node_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["extension_name"] = extension_name
         payload["content"] = statu
@@ -381,7 +381,7 @@ class AdapterNode(MessageNode):
 
         if topic == NODES_OPERATE_TOPIC:
             '''
-            分布式: 主动停止 使用extension_id
+            分布式: 主动停止 使用node_id
                 extension也是在此关闭，因为extension也是一种node
             UI触发关闭命令
             '''
@@ -393,9 +393,9 @@ class AdapterNode(MessageNode):
                 # 暂不处理extension
                 self.logger.debug(f"node stop message: {payload}")
                 self.logger.debug(f"node self.name: {self.name}")
-                # payload.get("extension_id") == self.NODE_ID to stop extension
+                # payload.get("node_id") == self.NODE_ID to stop extension
                 # f'eim/{payload.get("extension_name")}' == self.NODE_ID to stop node (generate extension id)
-                if payload.get("extension_id") == self.NODE_ID or payload.get("extension_id") == "all" or self._extension_name_to_extension_id(payload.get("extension_name")) == self.NODE_ID:
+                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._extension_name_to_node_id(payload.get("extension_name")) == self.NODE_ID:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return
@@ -406,7 +406,7 @@ class AdapterNode(MessageNode):
             v 接受所有订阅主题的消息
             插件业务类
             '''
-            if payload.get("extension_id") == self.NODE_ID:
+            if payload.get("node_id") == self.NODE_ID:
                 self.extension_message_handle(topic, payload)
                 '''
                 handlers = self.get_handlers(type="current_extension")

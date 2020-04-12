@@ -25,8 +25,8 @@ class MicrobitNode(AdapterNode):
     def external_message_processor(self, topic, payload):
         # self.logger.info(f'the message payload from extention: {payload}')
         if topic == ADAPTER_TOPIC:
-            extension_id = payload["extension_id"]
-            if extension_id == self.NODE_ID:
+            node_id = payload["node_id"]
+            if node_id == self.NODE_ID:
                 content = payload["content"]
                 self.microbit_event(content)
 
