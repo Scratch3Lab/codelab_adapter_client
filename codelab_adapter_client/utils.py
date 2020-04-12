@@ -1,6 +1,30 @@
 import functools
 import threading
 import time
+import pathlib
+from loguru import logger
+
+def get_or_create_codelab_adapter_dir():
+    dir = pathlib.Path.home() / "codelab_adapter"
+    dir.mkdir(parents=True, exist_ok=True)
+    return dir
+
+def get_or_create_node_logger_dir():
+    codelab_adapter_dir = get_or_create_codelab_adapter_dir()
+    dir = codelab_adapter_dir / "node_log"
+    dir.mkdir(parents=True, exist_ok=True)
+    return dir
+
+def setup_loguru_logger():
+    # 风险: 可能与adapter logger冲突， 同时读写文件
+    # 日志由node自行处理
+    node_logger_dir = get_or_create_node_logger_dir()
+    debug_log = str(node_logger_dir / "debug.log")
+    info_log = str(node_logger_dir / "info.log")
+    error_log = str(node_logger_dir / "error.log")
+    logger.add(debug_log, rotation="1 MB", level="DEBUG")
+    logger.add(info_log, rotation="1 MB", level="INFO")
+    logger.add(error_log, rotation="1 MB", level="ERROR")
 
 
 def threaded(function):
