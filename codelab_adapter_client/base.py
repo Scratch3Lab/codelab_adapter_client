@@ -226,7 +226,7 @@ class AdapterNode(MessageNode):
         super().__init__(*args, **kwargs)
         if not hasattr(self, 'TOPIC'):
             self.TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
-        if not hasattr(self, 'EXTENSION_ID'):
+        if not hasattr(self, 'NODE_ID'):
             self.NODE_ID = "eim"
         if not hasattr(self, 'HELP_URL'):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
