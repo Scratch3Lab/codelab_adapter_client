@@ -322,6 +322,26 @@ class AdapterNode(MessageNode):
         payload["type"] = type
         payload["content"] = content
         self.publish_payload(payload, topic)
+    
+    def pub_html_notification(self, html_content, topic=NOTIFICATION_TOPIC, type="INFO"):
+        '''
+        type
+            ERROR
+            INFO
+        {
+            topic: "from_adapter/extensions/notification"
+            payload: {
+                content:
+            }
+        }
+        '''
+        node_id = self.NODE_ID
+        payload = self.message_template()["payload"]
+        payload["type"] = type
+        payload["html"] = True
+        # json 描述
+        payload["content"] = html_content  # html
+        self.publish_payload(payload, topic)
 
     def pub_device_connect_status(self):
         '''
