@@ -1,4 +1,4 @@
 {
-    "topic": "core/extensions/operate",
+    "topic": "core/exts/operate",
     "payload": { "content": "start", "node_name": "extension_eim" }
   }

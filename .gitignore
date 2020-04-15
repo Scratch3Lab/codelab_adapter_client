@@ -103,3 +103,6 @@ ENV/
 env
 venv3.6/
 venv3.7
+
+.DS_Store
+.vscode/
