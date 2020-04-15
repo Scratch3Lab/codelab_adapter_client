@@ -15,7 +15,8 @@ channel
 
 # notification
 # adapter data
-ADAPTER_TOPIC = "adapter/extensions/data"  # 来自插件的消息，topic
+# from to
+ADAPTER_TOPIC = "adapter/nodes/data"  # 来自插件的消息，topic
 
 # scratch command
 SCRATCH_TOPIC = "scratch/extensions/command"

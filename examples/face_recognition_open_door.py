@@ -100,7 +100,7 @@ def main():
             # Draw a box around the face
             print(name)
             # print(name, (left, top), (right, bottom))
-            subprocess.call(f"codelab-message-pub -t adapter/extensions/data -c {name}", shell=True)
+            subprocess.call(f"codelab-message-pub -t adapter/nodes/data -c {name}", shell=True)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
