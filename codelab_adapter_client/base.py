@@ -311,7 +311,7 @@ class AdapterNode(MessageNode):
             ERROR
             INFO
         {
-            topic: "from_adapter/extensions/notification"
+            topic: 
             payload: {
                 content:
             }
@@ -329,7 +329,7 @@ class AdapterNode(MessageNode):
             ERROR
             INFO
         {
-            topic: "from_adapter/extensions/notification"
+            topic: 
             payload: {
                 content:
             }

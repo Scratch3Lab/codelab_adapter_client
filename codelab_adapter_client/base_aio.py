@@ -257,7 +257,7 @@ class AdapterNodeAio(MessageNodeAio):
             ERROR
             INFO
         {
-            topic: "from_adapter/extensions/notification"
+            topic: 
             payload: {
                 content:
             }
