@@ -4,7 +4,7 @@ import sys
 import zmq
 import json
 
-from codelab_adapter_client.topic import  ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTENSIONS_OPERATE_TOPIC
+from codelab_adapter_client.topic import  ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
 from codelab_adapter_client.utils import threaded
 from codelab_adapter_client import AdapterNode
 
@@ -40,7 +40,7 @@ class Trigger(AdapterNode):
     @threaded
     def run(self):
         while self._running:
-            # print(">>>self.publish({'topic':EXTENSIONS_OPERATE_TOPIC,'payload':{'content':'start', 'node_id':'extension_eim2'}})")
+            # print(">>>self.publish({'topic':EXTS_OPERATE_TOPIC,'payload':{'content':'start', 'node_id':'extension_eim2'}})")
             code = input(">>>read json from /tmp/message.json (enter to run)")
             with open("/tmp/message.json") as f:
                 message = json.loads(f.read())

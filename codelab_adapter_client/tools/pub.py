@@ -4,7 +4,7 @@ import sys
 import zmq
 import json
 
-from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTENSIONS_OPERATE_TOPIC
+from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
 from codelab_adapter_client.utils import threaded
 from codelab_adapter_client import AdapterNode
 
