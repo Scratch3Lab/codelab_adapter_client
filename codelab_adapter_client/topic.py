@@ -26,10 +26,10 @@ SCRATCH_TOPIC = "scratch/extensions/command"
 # EXTS_OPERATE_TOPIC由manage订阅，node自治
 EXTS_OPERATE_TOPIC = "core/exts/operate" # 区分extensions和node(server)
 NODES_OPERATE_TOPIC = "core/nodes/operate"
-NODES_STATUS_TOPIC = "core/extensions/status"
+NODES_STATUS_TOPIC = "core/nodes/status"
 ADAPTER_STATUS_TOPIC = "core/status" # adapter core info
-EXTENSIONS_STATUS_TRIGGER_TOPIC = "core/extensions/status/trigger"
-EXTENSION_STATU_CHANGE_TOPIC = "core/extension/statu/change"
+EXTENSIONS_STATUS_TRIGGER_TOPIC = "core/nodes/status/trigger"
+EXTENSION_STATU_CHANGE_TOPIC = "core/node/statu/change"
 NOTIFICATION_TOPIC = "core/notification"
 GUI_TOPIC = "gui/operate"
 
