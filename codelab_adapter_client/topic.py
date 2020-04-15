@@ -29,7 +29,7 @@ NODES_OPERATE_TOPIC = "core/nodes/operate"
 NODES_STATUS_TOPIC = "core/nodes/status"
 ADAPTER_STATUS_TOPIC = "core/status" # adapter core info
 NODES_STATUS_TRIGGER_TOPIC = "core/nodes/status/trigger"
-EXTENSION_STATU_CHANGE_TOPIC = "core/node/statu/change"
+NODE_STATU_CHANGE_TOPIC = "core/node/statu/change"
 NOTIFICATION_TOPIC = "core/notification"
 GUI_TOPIC = "gui/operate"
 

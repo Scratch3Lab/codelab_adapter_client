@@ -373,7 +373,7 @@ class AdapterNode(MessageNode):
         self.publish_payload(payload, topic)
 
     def pub_extension_statu_change(self, node_name, statu):
-        topic = EXTENSION_STATU_CHANGE_TOPIC
+        topic = NODE_STATU_CHANGE_TOPIC
         node_id = self.NODE_ID
         payload = self.message_template()["payload"]
         payload["node_name"] = node_name
