@@ -138,7 +138,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         else:
             error_text = f"publish error, rate limit!"
             self.logger.error(error_text)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(1)
             await self.pub_notification(error_text, type="ERROR")
 
     async def receive_loop(self):
