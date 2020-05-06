@@ -19,6 +19,7 @@ class Pub(AdapterNode):
         codelab-message-pub -h
     usage:
         codelab-message-pub -t hello_topic
+        codelab-message-pub -d eim/node_test
         codelab-message-pub -c hello_content
         codelab-message-pub -j '{"payload":{"content":"test contenst", "node_id": "eim"}}'
     """
