@@ -20,7 +20,7 @@ class Pub(AdapterNode):
     usage:
         codelab-message-pub -t hello_topic
         codelab-message-pub -c hello_content
-        codelab-message-pub -j '{"topic":"eim/test","payload":{"content":"test contenst"}}'
+        codelab-message-pub -j '{"payload":{"content":"test contenst", "node_id": "eim"}}'
     """
 
     def __init__(self,
@@ -56,6 +56,8 @@ def pub():
     parser.add_argument(
         "-t", dest="topic", default=ADAPTER_TOPIC, help="message topic")
     parser.add_argument(
+        "-d", dest="node_id", default='eim', help="node id")
+    parser.add_argument(
         "-c", dest="content", default='hi', help="payload['content']")
     parser.add_argument(
         "-j",
@@ -81,12 +83,12 @@ def pub():
         topic = message["topic"]
         payload = message["payload"]
     else:
-        topic = args.topic
         payload = my_pub.message_template()["payload"]
         payload["content"] = args.content
-
+        
+    topic = args.topic
     if payload.get("node_id", None):
-        payload["node_id"] = "eim"
+        payload["node_id"] = args.node_id
 
     my_pub.publish_payload(payload, topic)
 
