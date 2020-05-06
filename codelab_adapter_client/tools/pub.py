@@ -54,7 +54,7 @@ def pub():
         default='16103',
         help="Subscriber IP port")
     parser.add_argument(
-        "-t", dest="topic", default='eim', help="message topic")
+        "-t", dest="topic", default=ADAPTER_TOPIC, help="message topic")
     parser.add_argument(
         "-c", dest="content", default='hi', help="payload['content']")
     parser.add_argument(
@@ -84,6 +84,9 @@ def pub():
         topic = args.topic
         payload = my_pub.message_template()["payload"]
         payload["content"] = args.content
+
+    if payload.get("node_id", None):
+        payload["node_id"] = "eim"
 
     my_pub.publish_payload(payload, topic)
 
