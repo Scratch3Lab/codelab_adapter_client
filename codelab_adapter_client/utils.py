@@ -139,7 +139,8 @@ def subprocess_args(include_stdout=True):
 def get_pip_mirrors():
     if USE_CN_PIP_MIRRORS:
         return f"-i http://{CN_PIP_MIRRORS_HOST}/pypi/simple --trusted-host {CN_PIP_MIRRORS_HOST}"  # settings
-
+    else:
+        return ""
 
 def install_requirement(requirement, use_cn_mirrors=True):
     # adapter_home_path = get_or_create_codelab_adapter_dir()
