@@ -3,17 +3,19 @@ import os
 import pathlib
 import sys
 import time
+from time import gmtime, strftime
+import platform
 
 from loguru import logger
 
 ADAPTER_HOME_PATH = os.getenv('ADAPTER_HOME_PATH')
-CN_PIP_MIRRORS_HOST = "mirrors.aliyun.com"
+CN_PIP_MIRRORS_HOST = "https://pypi.tuna.tsinghua.edu.cn/simple"
 PYTHON3_PATH = None
 
 def is_in_china():
     # current time zone
-    c_zone = time.strftime('%Z', time.localtime())
-    if c_zone == "CST":
+    c_zone = strftime("%z", gmtime()) # time.strftime('%Z', time.localtime()) # fuck windows 🖕️
+    if c_zone == "+0800":
         return True
 
 

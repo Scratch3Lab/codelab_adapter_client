@@ -138,7 +138,7 @@ def subprocess_args(include_stdout=True):
 
 def get_pip_mirrors():
     if USE_CN_PIP_MIRRORS:
-        return f"-i http://{CN_PIP_MIRRORS_HOST}/pypi/simple --trusted-host {CN_PIP_MIRRORS_HOST}"  # settings
+        return f"-i {CN_PIP_MIRRORS_HOST}"  # settings
     else:
         return ""
 
@@ -146,7 +146,7 @@ def install_requirement(requirement, use_cn_mirrors=True):
     # adapter_home_path = get_or_create_codelab_adapter_dir()
     python_path = get_python3_path()
     pip_mirrors = get_pip_mirrors()  # maybe blank
-    install_cmd = f'{python_path} -m pip install {" ".join(requirement)} --upgrade {pip_mirrors}'
+    install_cmd = f'{python_path} -m pip install {" ".join(requirement)} {pip_mirrors} --upgrade'
     logger.debug(f"install_cmd -> {install_cmd}")
     output = subprocess.call(
         install_cmd,
