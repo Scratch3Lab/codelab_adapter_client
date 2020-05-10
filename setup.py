@@ -50,13 +50,14 @@ setup(
         'console_scripts': [
             'codelab-message-monitor = codelab_adapter_client.tools.monitor:monitor',
             'codelab-message-trigger = codelab_adapter_client.tools.trigger:trigger',
-            'codelab-message-pub = codelab_adapter_client.tools.pub:pub'
+            'codelab-message-pub = codelab_adapter_client.tools.pub:pub',
+            'codelab-adapter-helper = codelab_adapter_client.tools.adapter_helper:adapter_helper',
         ],
     },
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/wwj718/codelab_adapter_client',
-    version='1.5.0',
+    version='1.7.0',
     zip_safe=False,
 )
