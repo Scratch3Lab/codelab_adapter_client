@@ -8,7 +8,7 @@ from loguru import logger
 
 ADAPTER_HOME_PATH = os.getenv('ADAPTER_HOME_PATH')
 CN_PIP_MIRRORS_HOST = "mirrors.aliyun.com"
-
+PYTHON3_PATH = None
 
 def is_in_china():
     # current time zone
