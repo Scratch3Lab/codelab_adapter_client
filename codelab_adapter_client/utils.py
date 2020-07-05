@@ -1,5 +1,6 @@
 import functools
 import os
+import sys
 import pathlib
 import platform
 import subprocess
@@ -37,6 +38,11 @@ def setup_loguru_logger():
 
 
 def get_python3_path():
+    # todo 区分作为普通代码运行和作为冻结代码运行
+    if not getattr(sys, 'frozen', False):
+        # 普通模式 node
+        return str(sys.executable)
+        
     if PYTHON3_PATH:
         # 允许用户覆盖PYTHON3_PATH
         logger.info(
