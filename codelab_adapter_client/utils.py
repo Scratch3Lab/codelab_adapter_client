@@ -10,6 +10,7 @@ import platform
 from codelab_adapter_client.settings import PYTHON3_PATH, CN_PIP_MIRRORS_HOST, USE_CN_PIP_MIRRORS
 
 from loguru import logger
+import uflash
 
 
 def get_adapter_home_path():
@@ -42,7 +43,7 @@ def get_python3_path():
     if not getattr(sys, 'frozen', False):
         # 普通模式 node
         return str(sys.executable)
-        
+
     if PYTHON3_PATH:
         # 允许用户覆盖PYTHON3_PATH
         logger.info(
@@ -148,6 +149,7 @@ def get_pip_mirrors():
     else:
         return ""
 
+
 def install_requirement(requirement, use_cn_mirrors=True):
     # adapter_home_path = get_or_create_codelab_adapter_dir()
     python_path = get_python3_path()
@@ -176,6 +178,7 @@ def is_mac():
 def is_linux():
     if platform.system() == "Linux":
         return True
+
 
 # https://github.com/thonny/thonny/blob/master/thonny/ui_utils.py#L1764
 def open_path_in_system_file_manager(path):
