@@ -1,5 +1,5 @@
 # codelab_adapter_client
-Python Client of [CodeLab Adapter](https://adapter.codelab.club/) v2.
+Python Client of [CodeLab Adapter](https://adapter.codelab.club/) v3.
 
 # Install
 ```bash
