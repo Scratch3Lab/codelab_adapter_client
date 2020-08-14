@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 
 from loguru import logger
 
@@ -203,3 +204,11 @@ def run_monitor(monitor_func):
         node.run()
     except KeyboardInterrupt:
         node.terminate()  # Clean up before exiting.
+
+def send_simple_message(content):
+    import ssl
+    # https eim send, python3
+    url = f"https://codelab-adapter.codelab.club:12358/api/message/eim?message={content}"
+    with urllib.request.urlopen(url, context=ssl.SSLContext()) as response:
+        # html = response.read()
+        return "success!"
