@@ -1,17 +1,17 @@
 import functools
 import os
-import sys
 import pathlib
 import platform
 import subprocess
+import sys
 import threading
 import time
-import platform
-from codelab_adapter_client.settings import PYTHON3_PATH, CN_PIP_MIRRORS_HOST, USE_CN_PIP_MIRRORS
 
 from loguru import logger
-import uflash
 
+import uflash
+from codelab_adapter_client.settings import (CN_PIP_MIRRORS_HOST, PYTHON3_PATH,
+                                             USE_CN_PIP_MIRRORS)
 
 def get_adapter_home_path():
     dir = pathlib.Path.home() / "codelab_adapter"
@@ -192,3 +192,14 @@ def open_path_in_system_file_manager(path):
         cmd = "explorer"
     subprocess.Popen([cmd, str(path)])
     return [cmd, str(path)]
+
+
+def run_monitor(monitor_func):
+    from codelab_adapter_client.simple_node import EimMonitorNode
+    logger.debug("waiting for a message...")
+    try:
+        node = EimMonitorNode(monitor_func)
+        node.receive_loop_as_thread()
+        node.run()
+    except KeyboardInterrupt:
+        node.terminate()  # Clean up before exiting.
