@@ -6,7 +6,10 @@ import subprocess
 import sys
 import threading
 import time
+import urllib
 import urllib.request
+import re
+import base64
 
 from loguru import logger
 
@@ -208,7 +211,36 @@ def run_monitor(monitor_func):
 def send_simple_message(content):
     import ssl
     # https eim send, python3
-    url = f"https://codelab-adapter.codelab.club:12358/api/message/eim?message={content}"
-    with urllib.request.urlopen(url, context=ssl.SSLContext()) as response:
+    # 中文有问题
+    url = f"https://codelab-adapter.codelab.club:12358/api/message/eim"
+    data = {"message": content}
+    url_values = urllib.parse.urlencode(data)
+    full_url = url + '?' + url_values
+    with urllib.request.urlopen(full_url, context=ssl.SSLContext()) as response:
         # html = response.read()
         return "success!"
+    
+def save_base64_to_image(src, name):
+    """
+    ref: https://blog.csdn.net/mouday/article/details/93489508
+    解码图片
+        eg:
+            src="data:image/gif;base64,xxx" # 粘贴到在浏览器地址栏中可以直接显示
+    :return: str 保存到本地的文件名
+    """
+
+    result = re.search("data:image/(?P<ext>.*?);base64,(?P<data>.*)", src,
+                       re.DOTALL)
+    if result:
+        ext = result.groupdict().get("ext")
+        data = result.groupdict().get("data")
+    else:
+        raise Exception("Do not parse!")
+
+    img = base64.urlsafe_b64decode(data)
+
+    filename = "{}.{}".format(name, ext)
+    with open(filename, "wb") as f:
+        f.write(img)
+    # do something with the image...
+    return filename
