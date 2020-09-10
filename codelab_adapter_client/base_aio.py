@@ -186,8 +186,8 @@ class MessageNodeAio(metaclass=ABCMeta):
         """
         Clean up before exiting.
         """
-
         self._running = False
+        # print('clean_up!')
         await asyncio.sleep(0.1)
         # await self.publisher.close()
         # await self.subscriber.close()
@@ -232,6 +232,20 @@ class AdapterNodeAio(MessageNodeAio):
     def _node_name_to_node_id(self, node_name):
         return f'eim/{node_name}'
 
+    # def extension_message_handle(self, f):
+    async def extension_message_handle(self, topic, payload):
+        """
+        the decorator for adding current_extension handler
+        
+        self.add_handler(f, type='current_extension')
+        return f
+        """
+        self.logger.info("please set the  method to your handle method")
+
+    async def exit_message_handle(self, topic, payload):
+        await self.pub_extension_statu_change(self.NODE_ID, "stop")
+        if self._running:
+            await self.terminate()
 
     def message_template(self):
         # _message_template(sender,username,node_id,token) dict
@@ -268,13 +282,73 @@ class AdapterNodeAio(MessageNodeAio):
         payload["type"] = type
         payload["content"] = content
         await self.publish_payload(payload, topic)
-    
-    def terminate(self):
+
+    async def pub_extension_statu_change(self, node_name, statu):
+        topic = NODE_STATU_CHANGE_TOPIC
+        node_id = self.NODE_ID
+        payload = self.message_template()["payload"]
+        payload["node_name"] = node_name
+        payload["content"] = statu
+        await self.publish_payload(payload, topic)
+
+    async def message_handle(self, topic, payload):
+        """
+        Override this method with a custom adapter message processor for subscribed messages.
+        :param topic: Message Topic string.
+        :param payload: Message Data.
+
+        all the sub message
+        process handler
+
+        default sub: [SCRATCH_TOPIC, NODES_OPERATE_TOPIC]
+        """
+        if self.external_message_processor:
+            # handle all sub messages
+            # to handle websocket message
+            await self.external_message_processor(topic, payload)
+
+        if topic == NODES_OPERATE_TOPIC:
+            '''
+            分布式: 主动停止 使用node_id
+                extension也是在此关闭，因为extension也是一种node
+            UI触发关闭命令
+            '''
+            command = payload.get('content')
+            if command == 'stop':
+                '''
+                to stop node/extension
+                '''
+                # 暂不处理extension
+                self.logger.debug(f"node stop message: {payload}")
+                self.logger.debug(f"node self.name: {self.name}")
+                # payload.get("node_id") == self.NODE_ID to stop extension
+                # f'eim/{payload.get("node_name")}' == self.NODE_ID to stop node (generate extension id)
+                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._node_name_to_node_id(payload.get("node_name")) == self.NODE_ID:
+                    self.logger.info(f"stop {self}")
+                    await self.exit_message_handle(topic, payload)
+            return
+
+        if topic in [SCRATCH_TOPIC]:
+            '''
+            x 接受来自scratch的消息
+            v 接受所有订阅主题的消息
+            插件业务类
+            '''
+            if payload.get("node_id") == self.NODE_ID:
+                await self.extension_message_handle(topic, payload)
+                '''
+                handlers = self.get_handlers(type="current_extension")
+                for handler in handlers:
+                    handler(topic, payload)
+                '''
+
+    async def terminate(self):
         '''
         stop by thread
         await 
         '''
         # await self.clean_up() # todo 同步中运行异步
-
-        self.event_loop.create_task(self.clean_up())
+        print(f"{self} terminate!")
+        # self.logger.info(f"{self} terminate!")
+        await self.clean_up()
         self.logger.info(f"{self} terminate!")
