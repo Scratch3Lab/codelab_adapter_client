@@ -203,11 +203,12 @@ def run_monitor(monitor_func, codelab_adapter_ip_address=None):
     from codelab_adapter_client.simple_node import EimMonitorNode
     logger.debug("waiting for a message...")
     try:
-        node = EimMonitorNode(monitor_func, codelab_adapter_ip_address=codelab_adapter_ip_address)
+        node = EimMonitorNode(monitor_func, codelab_adapter_ip_address=codelab_adapter_ip_address, start_cmd_message_id=-1)
         node.receive_loop_as_thread()
         node.run()
     except KeyboardInterrupt:
         node.terminate()  # Clean up before exiting.
+
 
 def send_simple_message(content):
     import ssl
