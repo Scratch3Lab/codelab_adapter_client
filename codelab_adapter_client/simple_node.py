@@ -12,8 +12,8 @@ class EimMonitorNode(AdapterNode):
     WEIGHT = 97
     DESCRIPTION = "响应一条eim消息"
 
-    def __init__(self, monitor_func):
-        super().__init__()
+    def __init__(self, monitor_func, **kwargs):
+        super().__init__(**kwargs)
         self.monitor_func = monitor_func
 
     def extension_message_handle(self, topic, payload):

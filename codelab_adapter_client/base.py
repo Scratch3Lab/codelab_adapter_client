@@ -4,6 +4,7 @@ import sys
 import os
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
+import argparse
 
 import msgpack
 import zmq
@@ -20,21 +21,20 @@ logger = logging.getLogger(__name__)
 class MessageNode(metaclass=ABCMeta):
     # jupyter client Session: https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L249
     def __init__(
-            self,
-            name='',
-            logger=logger,
-            codelab_adapter_ip_address=None,
-            subscriber_port='16103',
-            publisher_port='16130', #write to conf file(jupyter)
-            subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-            loop_time=0.1,
-            connect_time=0.1,
-            external_message_processor=None,
-            receive_loop_idle_addition=None,
-            token=None,
-            bucket_token=100,
-            bucket_fill_rate=100
-    ):
+        self,
+        name='',
+        logger=logger,
+        codelab_adapter_ip_address=None,
+        subscriber_port='16103',
+        publisher_port='16130',  #write to conf file(jupyter)
+        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
+        loop_time=0.1,
+        connect_time=0.1,
+        external_message_processor=None,
+        receive_loop_idle_addition=None,
+        token=None,
+        bucket_token=100,
+        bucket_fill_rate=100):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -51,7 +51,7 @@ class MessageNode(metaclass=ABCMeta):
         if name:
             self.name = name
         else:
-            self.name = type(self).__name__ # instance name(self is instance)
+            self.name = type(self).__name__  # instance name(self is instance)
         self.token = token
         self.subscriber_port = subscriber_port
         self.publisher_port = publisher_port
@@ -87,7 +87,8 @@ class MessageNode(metaclass=ABCMeta):
         pub_connect_string = f'tcp://{self.codelab_adapter_ip_address}:{self.publisher_port}'
         self.publisher.connect(pub_connect_string)
         # Allow enough time for the TCP connection to the adapter complete.
-        time.sleep(self.connect_time/2)  # block 0.3 -> 0.1, to support init pub
+        time.sleep(self.connect_time /
+                   2)  # block 0.3 -> 0.1, to support init pub
 
     def __str__(self):
         return self.name
@@ -134,12 +135,12 @@ class MessageNode(metaclass=ABCMeta):
             pub_envelope = topic.encode()
             self.publisher.send_multipart([pub_envelope, message])
         else:
+            # 当前插件退出吗？
             error_text = "publish error, rate limit!"
             self.logger.error(error_text)
             time.sleep(0.1)
             # from AdapterNode
             self.pub_notification(error_text, type="ERROR")
-
 
     def receive_loop(self):
         """
@@ -162,7 +163,8 @@ class MessageNode(metaclass=ABCMeta):
                 try:
                     # some data is invalid
                     topic = data[0].decode()
-                    payload = msgpack.unpackb(data[1], raw=False) # replace unpackb
+                    payload = msgpack.unpackb(data[1],
+                                              raw=False)  # replace unpackb
                 except Exception as e:
                     self.logger.error(str(e))
                 self.message_handle(topic, payload)
@@ -213,8 +215,11 @@ class AdapterNode(MessageNode):
         "notification", "from_scratch", "from_adapter", "current_extension"
     ]
     '''
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self,
+                 start_cmd_message_id=None,
+                 is_started_now=True,
+                 *args,
+                 **kwargs):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -235,6 +240,37 @@ class AdapterNode(MessageNode):
         # todo  handler: https://github.com/offu/WeRoBot/blob/master/werobot/robot.py#L590
         # self._handlers = {k: [] for k in self.message_types}
         # self._handlers['all'] = []
+
+        if not start_cmd_message_id:
+            # node from cmd, extension from param
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
+                        help="start cmd message id, a number or uuid(string)")
+            args = parser.parse_args()
+            start_cmd_message_id = args.message_id
+
+        self.start_cmd_message_id = start_cmd_message_id 
+        self.logger.debug(f"start_cmd_message_id -> {self.start_cmd_message_id}")
+        if is_started_now and self.start_cmd_message_id:
+            self.started()
+
+    def started(self):
+        '''
+        started notify
+        '''
+        self.pub_notification(f"{self.NODE_ID} started")
+        # request++ and uuid, Compatible with them.
+        try:
+            int_message = int(self.start_cmd_message_id)
+            self.send_reply(int_message)
+        except ValueError:
+            self.send_reply(self.start_cmd_message_id)
+
+    def send_reply(self, message_id, content="ok"):
+        response_message = self.message_template()
+        response_message["payload"]["message_id"] = message_id
+        response_message["payload"]["content"] = content
+        self.publish(response_message)
 
     '''
     def add_handler(self, func, type='all'):
@@ -322,8 +358,11 @@ class AdapterNode(MessageNode):
         payload["type"] = type
         payload["content"] = content
         self.publish_payload(payload, topic)
-    
-    def pub_html_notification(self, html_content, topic=NOTIFICATION_TOPIC, type="INFO"):
+
+    def pub_html_notification(self,
+                              html_content,
+                              topic=NOTIFICATION_TOPIC,
+                              type="INFO"):
         '''
         type
             ERROR
@@ -415,7 +454,9 @@ class AdapterNode(MessageNode):
                 self.logger.debug(f"node self.name: {self.name}")
                 # payload.get("node_id") == self.NODE_ID to stop extension
                 # f'eim/{payload.get("node_name")}' == self.NODE_ID to stop node (generate extension id)
-                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._node_name_to_node_id(payload.get("node_name")) == self.NODE_ID:
+                if payload.get("node_id") == self.NODE_ID or payload.get(
+                        "node_id") == "all" or self._node_name_to_node_id(
+                            payload.get("node_name")) == self.NODE_ID:
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return
@@ -439,6 +480,7 @@ class AdapterNode(MessageNode):
         stop thread
         '''
         if self._running:
+            # todo 对外报告已经关闭
             self.clean_up()
             self.logger.info(f"{self} terminate!")
 
