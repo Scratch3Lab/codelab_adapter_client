@@ -10,6 +10,7 @@ import urllib
 import urllib.request
 import re
 import base64
+import socket
 
 from loguru import logger
 
@@ -198,11 +199,11 @@ def open_path_in_system_file_manager(path):
     return [cmd, str(path)]
 
 
-def run_monitor(monitor_func):
+def run_monitor(monitor_func, codelab_adapter_ip_address=None):
     from codelab_adapter_client.simple_node import EimMonitorNode
     logger.debug("waiting for a message...")
     try:
-        node = EimMonitorNode(monitor_func)
+        node = EimMonitorNode(monitor_func, codelab_adapter_ip_address=codelab_adapter_ip_address)
         node.receive_loop_as_thread()
         node.run()
     except KeyboardInterrupt:
@@ -211,6 +212,7 @@ def run_monitor(monitor_func):
 def send_simple_message(content):
     import ssl
     # https eim send, python3
+    # 阻塞问题 频率消息 http连接数？
     # 中文有问题
     url = f"https://codelab-adapter.codelab.club:12358/api/message/eim"
     data = {"message": content}
@@ -244,3 +246,12 @@ def save_base64_to_image(src, name):
         f.write(img)
     # do something with the image...
     return filename
+
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # 114.114.114.114
+        ip = s.getsockname()[0]
+        return ip
+    except Exception as e:
+        str(e)
