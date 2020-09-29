@@ -474,16 +474,15 @@ class AdapterNode(MessageNode):
                 for handler in handlers:
                     handler(topic, payload)
                 '''
-
-    def terminate(self):
-        '''
-        stop thread
-        '''
+                
+    def terminate(self, stop_cmd_message_id=None):
         if self._running:
-            # todo 对外报告已经关闭
+            self.logger.info(f"stopped {self.NODE_ID}")
+            self.pub_notification(f"{self.NODE_ID} stopped")  # 会通知给 UI
+            if stop_cmd_message_id:
+                self.send_reply(stop_cmd_message_id)
+            # super().terminate()
             self.clean_up()
-            self.logger.info(f"{self} terminate!")
-
 
 class JupyterNode(AdapterNode):
     def __init__(self, *args, **kwargs):
