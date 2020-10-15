@@ -28,12 +28,15 @@ class Pub(AdapterNode):
                  codelab_adapter_ip_address=None,
                  subscriber_port='16103',
                  publisher_port='16130',
-                 name=None):
+                 name=None,
+                 ):
         super().__init__(
             name=name,
             codelab_adapter_ip_address=codelab_adapter_ip_address,
             subscriber_port=subscriber_port,
-            publisher_port=publisher_port)
+            publisher_port=publisher_port,
+            start_cmd_message_id = -1 # 为了防止命令行参数被提前解析，丑陋的补丁
+            )
 
         self.set_subscriber_topic('')
 

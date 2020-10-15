@@ -22,7 +22,9 @@ class Trigger(AdapterNode):
             name=name,
             codelab_adapter_ip_address=codelab_adapter_ip_address,
             subscriber_port=subscriber_port,
-            publisher_port=publisher_port)
+            publisher_port=publisher_port,
+            start_cmd_message_id = -1
+            )
 
         self.set_subscriber_topic('')
         self.run()
