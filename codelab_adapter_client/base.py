@@ -28,7 +28,7 @@ class MessageNode(metaclass=ABCMeta):
         subscriber_port='16103',
         publisher_port='16130',  #write to conf file(jupyter)
         subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-        loop_time=0.1,
+        loop_time=0.01,
         connect_time=0.1,
         external_message_processor=None,
         receive_loop_idle_addition=None,
@@ -165,9 +165,11 @@ class MessageNode(metaclass=ABCMeta):
                     topic = data[0].decode()
                     payload = msgpack.unpackb(data[1],
                                               raw=False)  # replace unpackb
+                    self.message_handle(topic, payload)
                 except Exception as e:
                     self.logger.error(str(e))
-                self.message_handle(topic, payload)
+                # 这里很慢
+                # self.logger.debug(f"extension.receive_loop -> {time.time()}")
             # if no messages are available, zmq throws this exception
             except zmq.error.Again:
                 try:

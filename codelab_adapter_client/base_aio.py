@@ -25,7 +25,7 @@ class MessageNodeAio(metaclass=ABCMeta):
             subscriber_port='16103',
             publisher_port='16130',
             subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-            loop_time=0.1,
+            loop_time=0.01,
             connect_time=0.3,
             external_message_processor=None,
             receive_loop_idle_addition=None,
@@ -125,7 +125,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         :param payload: Protocol message to be published
         :param topic: A string value
         """
-
+        # self.logger.debug(f"publish_payload begin-> {time.time()}")
         # make sure the topic is a string
         if not type(topic) is str:
             raise TypeError('Publish topic must be string', 'topic')
@@ -140,6 +140,8 @@ class MessageNodeAio(metaclass=ABCMeta):
             self.logger.error(error_text)
             await asyncio.sleep(1)
             await self.pub_notification(error_text, type="ERROR")
+
+        # self.logger.debug(f"publish_payload end-> {time.time()}") # fast!
 
     async def receive_loop(self):
         """
