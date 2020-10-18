@@ -25,7 +25,7 @@ class MessageNodeAio(metaclass=ABCMeta):
             subscriber_port='16103',
             publisher_port='16130',
             subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-            loop_time=0.02,
+            loop_time=0.02, # todo config by user
             connect_time=0.3,
             external_message_processor=None,
             receive_loop_idle_addition=None,
@@ -44,6 +44,9 @@ class MessageNodeAio(metaclass=ABCMeta):
         :param token: for safety
         :param bucket_token/bucket_fill_rate: rate limit
         '''
+        self.last_pub_time = time.time()
+        self.bucket_token = bucket_token
+        self.bucket_fill_rate = bucket_fill_rate
         self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self._running = True  # use it to receive_loop
         self.logger = logger
@@ -136,10 +139,12 @@ class MessageNodeAio(metaclass=ABCMeta):
             pub_envelope = topic.encode()
             await self.publisher.send_multipart([pub_envelope, message])
         else:
-            error_text = f"publish error, rate limit!"
-            self.logger.error(error_text)
-            await asyncio.sleep(1)
-            await self.pub_notification(error_text, type="ERROR")
+            now = time.time()
+            if (now - self.last_pub_time > 1):
+                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})" # 1 /s or ui
+                self.logger.error(error_text)
+                await self.pub_notification(error_text, type="ERROR")
+                self.last_pub_time = time.time()        
 
         # self.logger.debug(f"publish_payload end-> {time.time()}") # fast!
 
@@ -262,8 +267,7 @@ class AdapterNodeAio(MessageNodeAio):
                 topic = self.TOPIC
             if not payload.get("node_id"):
                 payload["node_id"] = self.NODE_ID
-            self.logger.debug(
-                f"{self.name} publish: topic: {topic} payload:{payload}")
+            # self.logger.debug(f"{self.name} publish: topic: {topic} payload:{payload}")
 
             await self.publish_payload(payload, topic)
 

@@ -45,6 +45,9 @@ class MessageNode(metaclass=ABCMeta):
         :param token: for safety
         :param bucket_token/bucket_fill_rate: rate limit
         '''
+        self.last_pub_time = time.time
+        self.bucket_token = bucket_token
+        self.bucket_fill_rate = bucket_fill_rate
         self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self.logger = logger
         self._running = True  # use it to control Python thread, work with self.terminate()
@@ -135,12 +138,12 @@ class MessageNode(metaclass=ABCMeta):
             pub_envelope = topic.encode()
             self.publisher.send_multipart([pub_envelope, message])
         else:
-            # 当前插件退出吗？
-            error_text = "publish error, rate limit!"
-            self.logger.error(error_text)
-            time.sleep(0.1)
-            # from AdapterNode
-            self.pub_notification(error_text, type="ERROR")
+            now = time.time()
+            if (now - self.last_pub_time > 1):
+                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})" # 1 /s or ui
+                self.logger.error(error_text)
+                self.pub_notification(error_text, type="ERROR")
+                self.last_pub_time = time.time() 
 
     def receive_loop(self):
         """
