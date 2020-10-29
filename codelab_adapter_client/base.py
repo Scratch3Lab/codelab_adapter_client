@@ -323,7 +323,8 @@ class AdapterNode(MessageNode):
     def exit_message_handle(self, topic, payload):
         self.pub_extension_statu_change(self.NODE_ID, "stop")
         if self._running:
-            self.terminate()
+            stop_cmd_message_id = payload.get("message_id", None)
+            self.terminate(stop_cmd_message_id=stop_cmd_message_id)
 
     def message_template(self):
         # _message_template(sender,node_id,token)
