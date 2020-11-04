@@ -16,7 +16,7 @@ from loguru import logger
 
 import uflash
 from codelab_adapter_client.settings import (CN_PIP_MIRRORS_HOST, PYTHON3_PATH,
-                                             USE_CN_PIP_MIRRORS)
+                                             USE_CN_PIP_MIRRORS, ZMQ_LOOP_TIME)
 
 def get_adapter_home_path():
     dir = pathlib.Path.home() / "codelab_adapter"

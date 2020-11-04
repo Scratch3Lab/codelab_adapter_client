@@ -11,7 +11,7 @@ import zmq
 # import psutil
 
 from codelab_adapter_client.topic import *
-from codelab_adapter_client.utils import threaded, TokenBucket
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME
 from codelab_adapter_client._version import protocol_version
 from codelab_adapter_client.session import _message_template
 
@@ -28,7 +28,7 @@ class MessageNode(metaclass=ABCMeta):
         subscriber_port='16103',
         publisher_port='16130',  #write to conf file(jupyter)
         subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-        loop_time=0.02,
+        loop_time=ZMQ_LOOP_TIME,
         connect_time=0.1,
         external_message_processor=None,
         receive_loop_idle_addition=None,

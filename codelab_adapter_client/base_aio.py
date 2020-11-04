@@ -10,7 +10,7 @@ import asyncio
 
 from codelab_adapter_client.topic import *
 # from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
-from codelab_adapter_client.utils import threaded, TokenBucket
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME
 from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class MessageNodeAio(metaclass=ABCMeta):
             subscriber_port='16103',
             publisher_port='16130',
             subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-            loop_time=0.02, # todo config by user
+            loop_time=ZMQ_LOOP_TIME, # todo config by user
             connect_time=0.3,
             external_message_processor=None,
             receive_loop_idle_addition=None,

@@ -31,6 +31,9 @@ else:
 
 sys.path.insert(1, str(ADAPTER_HOME))
 
+# loop time
+ZMQ_LOOP_TIME = 0.02
+
 try:
     from user_settings import *
 except Exception as e:
