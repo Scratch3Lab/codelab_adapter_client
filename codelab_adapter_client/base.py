@@ -456,13 +456,13 @@ class AdapterNode(MessageNode):
                 to stop node/extension
                 '''
                 # 暂不处理extension
-                self.logger.debug(f"node stop message: {payload}")
-                self.logger.debug(f"node self.name: {self.name}")
                 # payload.get("node_id") == self.NODE_ID to stop extension
                 # f'eim/{payload.get("node_name")}' == self.NODE_ID to stop node (generate extension id)
                 if payload.get("node_id") == self.NODE_ID or payload.get(
                         "node_id") == "all" or self._node_name_to_node_id(
                             payload.get("node_name")) == self.NODE_ID:
+                    # self.logger.debug(f"node stop message: {payload}")
+                    # self.logger.debug(f"node self.name: {self.name}")
                     self.logger.info(f"stop {self}")
                     self.exit_message_handle(topic, payload)
             return

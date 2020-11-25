@@ -7,6 +7,7 @@ import msgpack
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 import asyncio
+import argparse
 
 from codelab_adapter_client.topic import *
 # from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
@@ -18,22 +19,21 @@ logger = logging.getLogger(__name__)
 
 class MessageNodeAio(metaclass=ABCMeta):
     def __init__(
-            self,
-            name='',
-            logger=logger,
-            codelab_adapter_ip_address=None,
-            subscriber_port='16103',
-            publisher_port='16130',
-            subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
-            loop_time=ZMQ_LOOP_TIME, # todo config by user
-            connect_time=0.3,
-            external_message_processor=None,
-            receive_loop_idle_addition=None,
-            event_loop=None,
-            token=None,
-            bucket_token=100,
-            bucket_fill_rate=100
-    ):
+        self,
+        name='',
+        logger=logger,
+        codelab_adapter_ip_address=None,
+        subscriber_port='16103',
+        publisher_port='16130',
+        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
+        loop_time=ZMQ_LOOP_TIME,  # todo config by user
+        connect_time=0.3,
+        external_message_processor=None,
+        receive_loop_idle_addition=None,
+        event_loop=None,
+        token=None,
+        bucket_token=100,
+        bucket_fill_rate=100):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -133,7 +133,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         if not type(topic) is str:
             raise TypeError('Publish topic must be string', 'topic')
 
-        if  self.bucket.consume(1):
+        if self.bucket.consume(1):
             message = await self.pack(payload)
 
             pub_envelope = topic.encode()
@@ -141,10 +141,10 @@ class MessageNodeAio(metaclass=ABCMeta):
         else:
             now = time.time()
             if (now - self.last_pub_time > 1):
-                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})" # 1 /s or ui
+                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})"  # 1 /s or ui
                 self.logger.error(error_text)
                 await self.pub_notification(error_text, type="ERROR")
-                self.last_pub_time = time.time()        
+                self.last_pub_time = time.time()
 
         # self.logger.debug(f"publish_payload end-> {time.time()}") # fast!
 
@@ -199,15 +199,17 @@ class MessageNodeAio(metaclass=ABCMeta):
         # await self.publisher.close()
         # await self.subscriber.close()
         # await self.context.term()
-        
 
 
 class AdapterNodeAio(MessageNodeAio):
     '''
     CodeLab Adapter AdapterNodeAio
     '''
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self,
+                 start_cmd_message_id=None,
+                 is_started_now=True,
+                 *args,
+                 **kwargs):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -228,6 +230,44 @@ class AdapterNodeAio(MessageNodeAio):
             self.HELP_URL = "http://adapter.codelab.club/extension_guide/introduction/"
         if not hasattr(self, 'WEIGHT'):
             self.WEIGHT = 0
+
+        if not start_cmd_message_id:
+            # node from cmd, extension from param
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
+                        help="start cmd message id, a number or uuid(string)")
+            args = parser.parse_args()
+            start_cmd_message_id = args.message_id
+
+        self.start_cmd_message_id = start_cmd_message_id 
+        self.logger.debug(f"start_cmd_message_id -> {self.start_cmd_message_id}")
+        if is_started_now and self.start_cmd_message_id:
+            # self.event_loop.create_task(self.started())
+            pass # 放到程序中启动确认
+            self.event_loop.run_until_complete(self.started())
+
+        
+
+    async def started(self):
+        '''
+        started notify
+        todo await
+        '''
+        # request++ and uuid, Compatible with them.
+        await self.pub_notification(f"{self.NODE_ID} started")
+        try:
+            int_message = int(self.start_cmd_message_id)
+            await self.send_reply(int_message)
+        except ValueError:
+            # task
+            await self.send_reply(self.start_cmd_message_id)
+            
+
+    async def send_reply(self, message_id, content="ok"):
+        response_message = self.message_template()
+        response_message["payload"]["message_id"] = message_id
+        response_message["payload"]["content"] = content
+        await self.publish(response_message)
 
     def generate_node_id(self, filename):
         '''
@@ -252,26 +292,30 @@ class AdapterNodeAio(MessageNodeAio):
     async def exit_message_handle(self, topic, payload):
         await self.pub_extension_statu_change(self.NODE_ID, "stop")
         if self._running:
-            await self.terminate()
+            stop_cmd_message_id = payload.get("message_id", None)
+            await self.terminate(stop_cmd_message_id=stop_cmd_message_id)
 
     def message_template(self):
         # _message_template(sender,username,node_id,token) dict
         template = _message_template(self.name, self.NODE_ID, self.token)
         return template
-    
+
     async def publish(self, message):
-            assert isinstance(message, dict)
-            topic = message.get('topic')
-            payload = message.get("payload")
-            if not topic:
-                topic = self.TOPIC
-            if not payload.get("node_id"):
-                payload["node_id"] = self.NODE_ID
-            # self.logger.debug(f"{self.name} publish: topic: {topic} payload:{payload}")
+        assert isinstance(message, dict)
+        topic = message.get('topic')
+        payload = message.get("payload")
+        if not topic:
+            topic = self.TOPIC
+        if not payload.get("node_id"):
+            payload["node_id"] = self.NODE_ID
+        # self.logger.debug(f"{self.name} publish: topic: {topic} payload:{payload}")
 
-            await self.publish_payload(payload, topic)
+        await self.publish_payload(payload, topic)
 
-    async def pub_notification(self, content, topic=NOTIFICATION_TOPIC, type="INFO"):
+    async def pub_notification(self,
+                               content,
+                               topic=NOTIFICATION_TOPIC,
+                               type="INFO"):
         '''
         type
             ERROR
@@ -329,7 +373,9 @@ class AdapterNodeAio(MessageNodeAio):
                 self.logger.debug(f"node self.name: {self.name}")
                 # payload.get("node_id") == self.NODE_ID to stop extension
                 # f'eim/{payload.get("node_name")}' == self.NODE_ID to stop node (generate extension id)
-                if payload.get("node_id") == self.NODE_ID or payload.get("node_id") == "all" or self._node_name_to_node_id(payload.get("node_name")) == self.NODE_ID:
+                if payload.get("node_id") == self.NODE_ID or payload.get(
+                        "node_id") == "all" or self._node_name_to_node_id(
+                            payload.get("node_name")) == self.NODE_ID:
                     self.logger.info(f"stop {self}")
                     await self.exit_message_handle(topic, payload)
             return
@@ -348,13 +394,23 @@ class AdapterNodeAio(MessageNodeAio):
                     handler(topic, payload)
                 '''
 
-    async def terminate(self):
+    async def terminate(self, stop_cmd_message_id=None):
         '''
         stop by thread
         await 
-        '''
+        
         # await self.clean_up() # todo 同步中运行异步
         print(f"{self} terminate!")
         # self.logger.info(f"{self} terminate!")
         await self.clean_up()
         self.logger.info(f"{self} terminate!")
+        '''
+
+        if self._running:
+            self.logger.info(f"stopped {self.NODE_ID}")
+            await self.pub_notification(f"{self.NODE_ID} stopped")  # 会通知给 UI
+            if stop_cmd_message_id:
+                await self.send_reply(stop_cmd_message_id)
+                await asyncio.sleep(0.1)
+            # super().terminate()
+            await self.clean_up()
