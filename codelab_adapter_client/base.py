@@ -13,7 +13,7 @@ import zmq
 # import psutil
 
 from codelab_adapter_client.topic import *
-from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, LindaTimeoutError
 from codelab_adapter_client._version import protocol_version
 from codelab_adapter_client.session import _message_template
 
@@ -358,6 +358,8 @@ class AdapterNode(MessageNode):
 
         self.publish_payload(payload, topic)
 
+    ########################
+    # todo linda mixin
     def _send_to_linda_server(self, operate, _tuple):
         '''
         send to linda server and wait it （client block / future）
@@ -390,23 +392,41 @@ class AdapterNode(MessageNode):
         # todo 加入到队列里: (message_id, f) f.set_result(tuple)
         try:
             result = f.result(timeout=timeout)
+            return result
         except concurrent.futures.TimeoutError:
-            result = f"timeout: {timeout}"
-        return result
+            # result = f"timeout: {timeout}"
+            # todo 结构化
+            raise LindaTimeoutError(f'timeout: {timeout}; message_id: {message_id}')
+        # return result
 
-    def linda_in(self, _tuple, timeout=3):
+
+    def linda_in(self, _tuple: list, timeout=None):
         '''
+        timeout 心理模型不好，尽量不用，timeout之后，linda server还在维护 in_queue
+        尽量使用inp
+        # https://docs.python.org/zh-cn/3/library/typing.html
+        params:
+            _tuple: list
         linda in
         block , 不要timeout？
         '''
         return self._send_and_wait("in", _tuple, timeout)
 
+    def linda_inp(self, _tuple: list):
+        return self._send_and_wait("inp", _tuple, None)
+
+
     # 阻塞吗？
-    def linda_rd(self, _tuple, timeout=3):
+    def linda_rd(self, _tuple: list, timeout=None):
         '''
         rd 要能够匹配才有意思， 采用特殊字符串，匹配
+
+        如果当前没有 client 要等待吗（服务端如果看到相同的会再次发送，不等待的服务端返回 [], 先做阻塞的），行为在client决定，已经收到通知了
         '''
         return self._send_and_wait("rd", _tuple, timeout)
+
+    def linda_rdp(self, _tuple: list):
+        return self._send_and_wait("rdp", _tuple, None)
 
 
     def linda_out(self, _tuple):
@@ -416,12 +436,29 @@ class AdapterNode(MessageNode):
         '''
         self._send_to_linda_server("out", _tuple)
 
-    def linda_dump(self, timeout=3):
+
+    # helper
+    def linda_dump(self, timeout=None):
         '''
-        linda out
         no block
         '''
-        return self._send_and_wait("dump", ("dump",), timeout)
+        return self._send_and_wait("dump", ["dump"], timeout)
+
+    # helper
+    def linda_status(self, timeout=None):
+        '''
+        no block
+        '''
+        return self._send_and_wait("status", ["status"], timeout)
+
+
+    def linda_reboot(self, timeout=None):
+        '''
+        no block
+        '''
+        return self._send_and_wait("reboot", ["reboot"], timeout)
+        
+    ########################
 
     def get_node_id(self):
         return self.NODE_ID

@@ -256,3 +256,6 @@ def get_local_ip():
         return ip
     except Exception as e:
         str(e)
+
+class LindaTimeoutError(Exception):
+    pass
