@@ -1,10 +1,12 @@
 import time
 import logging
 import sys
+import uuid
 import os
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 import argparse
+import concurrent.futures
 
 import msgpack
 import zmq
@@ -27,7 +29,7 @@ class MessageNode(metaclass=ABCMeta):
         codelab_adapter_ip_address=None,
         subscriber_port='16103',
         publisher_port='16130',  #write to conf file(jupyter)
-        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
+        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC, LINDA_CLIENT],
         loop_time=ZMQ_LOOP_TIME,
         connect_time=0.1,
         external_message_processor=None,
@@ -247,17 +249,29 @@ class AdapterNode(MessageNode):
         # self._handlers['all'] = []
 
         if not start_cmd_message_id:
-            # node from cmd, extension from param
-            parser = argparse.ArgumentParser()
-            parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
-                        help="start cmd message id, a number or uuid(string)")
-            args = parser.parse_args()
-            start_cmd_message_id = args.message_id
+            '''
+            1 node from cmd（start_cmd_message_id in args） 以脚本运行
+                1.1 if __name__ == '__main__':
+                1.2 采用命令行参数判断，数量内容 更精准，因为ide也是使用脚本启动
+            2 extension from param（with start_cmd_message_id）
+            3 work with jupyter/mu
+            '''
+            if "--start-cmd-message-id" in sys.argv:
+                    parser = argparse.ArgumentParser()
+                    parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
+                                help="start cmd message id, a number or uuid(string)")
+                    args = parser.parse_args()
+                    start_cmd_message_id = args.message_id
+        else:
+            pass # extensions
 
         self.start_cmd_message_id = start_cmd_message_id 
         self.logger.debug(f"start_cmd_message_id -> {self.start_cmd_message_id}")
         if is_started_now and self.start_cmd_message_id:
             self.started()
+        
+        # linda
+        self.linda_wait_futures = []
 
     def started(self):
         '''
@@ -343,6 +357,71 @@ class AdapterNode(MessageNode):
             f"{self.name} publish: topic: {topic} payload:{payload}")
 
         self.publish_payload(payload, topic)
+
+    def _send_to_linda_server(self, operate, _tuple):
+        '''
+        send to linda server and wait it （client block / future）
+        return:
+            message_id
+        '''
+        topic = LINDA_SERVER # to 
+
+        payload = self.message_template()["payload"]
+        payload["message_id"] = uuid.uuid4().hex
+        payload["operate"] = operate
+        payload["tuple"] = _tuple
+        payload["content"] = _tuple # 是否必要
+        
+        self.logger.debug(
+            f"{self.name} publish: topic: {topic} payload:{payload}")
+
+        self.publish_payload(payload, topic)
+        return payload["message_id"]
+
+
+    def _send_and_wait(self, operate, _tuple, timeout):
+        message_id = self._send_to_linda_server(operate, _tuple)
+        '''
+        return future timeout
+        futurn 被消息循环队列释放
+        '''
+        f = concurrent.futures.Future()
+        self.linda_wait_futures.append((message_id, f))
+        # todo 加入到队列里: (message_id, f) f.set_result(tuple)
+        try:
+            result = f.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            result = f"timeout: {timeout}"
+        return result
+
+    def linda_in(self, _tuple, timeout=3):
+        '''
+        linda in
+        block , 不要timeout？
+        '''
+        return self._send_and_wait("in", _tuple, timeout)
+
+    # 阻塞吗？
+    def linda_rd(self, _tuple, timeout=3):
+        '''
+        rd 要能够匹配才有意思， 采用特殊字符串，匹配
+        '''
+        return self._send_and_wait("rd", _tuple, timeout)
+
+
+    def linda_out(self, _tuple):
+        '''
+        linda out
+        no block
+        '''
+        self._send_to_linda_server("out", _tuple)
+
+    def linda_dump(self, timeout=3):
+        '''
+        linda out
+        no block
+        '''
+        return self._send_and_wait("dump", ("dump",), timeout)
 
     def get_node_id(self):
         return self.NODE_ID
@@ -480,7 +559,14 @@ class AdapterNode(MessageNode):
                 for handler in handlers:
                     handler(topic, payload)
                 '''
-                
+        
+        if topic in LINDA_CLIENT:
+            for (message_id, future) in self.linda_wait_futures:
+                if message_id == payload.get("message_id"):
+                    future.set_result(payload["tuple"])
+                    break
+            
+
     def terminate(self, stop_cmd_message_id=None):
         if self._running:
             self.logger.info(f"stopped {self.NODE_ID}")
