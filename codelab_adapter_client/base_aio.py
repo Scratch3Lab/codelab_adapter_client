@@ -12,7 +12,7 @@ import argparse
 
 from codelab_adapter_client.topic import *
 # from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
-from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, NodeTerminateError
 from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
@@ -422,16 +422,22 @@ class AdapterNodeAio(MessageNodeAio):
                 await self.send_reply(stop_cmd_message_id)
                 await asyncio.sleep(0.1)
             # super().terminate()
+            for (message_id, f) in self.linda_wait_futures:
+                if not f.done():
+                    f.set_exception(NodeTerminateError("terminate"))
             await self.clean_up()
     
     ##############
-    # linda 和线程future几乎一模一样
+    # linda . 和线程future几乎一模一样
     async def _send_to_linda_server(self, operate, _tuple):
         '''
         send to linda server and wait it （client block / future）
         return:
             message_id
         '''
+        if not self._running:
+            # loop
+            Exception(f"_running: {self._running}") 
         topic = LINDA_SERVER # to 
         payload = self.message_template()["payload"]
         payload["message_id"] = uuid.uuid4().hex

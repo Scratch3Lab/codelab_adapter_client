@@ -259,3 +259,6 @@ def get_local_ip():
 
 class LindaTimeoutError(Exception):
     pass
+
+class NodeTerminateError(Exception):
+    pass

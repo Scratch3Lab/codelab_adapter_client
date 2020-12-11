@@ -13,7 +13,7 @@ import zmq
 # import psutil
 
 from codelab_adapter_client.topic import *
-from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, LindaTimeoutError
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, LindaTimeoutError, NodeTerminateError
 from codelab_adapter_client._version import protocol_version
 from codelab_adapter_client.session import _message_template
 
@@ -382,6 +382,11 @@ class AdapterNode(MessageNode):
 
 
     def _send_and_wait(self, operate, _tuple, timeout):
+        # 确保 running， 接收到消息
+        if not self._running:
+            # loop
+            Exception(f"_running: {self._running}") 
+
         message_id = self._send_to_linda_server(operate, _tuple)
         '''
         return future timeout
@@ -397,6 +402,7 @@ class AdapterNode(MessageNode):
             # result = f"timeout: {timeout}"
             # todo 结构化
             raise LindaTimeoutError(f'timeout: {timeout}; message_id: {message_id}')
+        # todo exit exception
         # return result
 
 
@@ -600,6 +606,15 @@ class AdapterNode(MessageNode):
             if stop_cmd_message_id:
                 self.send_reply(stop_cmd_message_id)
             # super().terminate()
+            # 释放 future
+            # for (message_id, future) in self.linda_wait_futures:
+            for (message_id, f) in self.linda_wait_futures:
+                if not f.done():
+                    f.set_exception(NodeTerminateError("terminate"))
+                    # f.set_result(Exception("terminate"))
+                    # f.set_result("terminate")
+                    # time.sleep(0.1)
+            
             self.clean_up()
 
 class JupyterNode(AdapterNode):
