@@ -16,7 +16,7 @@ channel
 # notification
 # adapter data
 # from to
-ADAPTER_TOPIC = "adapter/nodes/data"  # 来自插件的消息，topic
+ADAPTER_TOPIC = "adapter/nodes/data"  # 来自 Adapter 插件的消息，关注方向
 
 # scratch command
 SCRATCH_TOPIC = "scratch/extensions/command"
@@ -51,3 +51,7 @@ TO_HA_TOPIC = "to_HA"
 # Home Assistant
 FROM_WEBSOCKET_TOPIC = "from_websocket"
 TO_WEBSOCKET_TOPIC = "to_websocket"
+
+# linda
+LINDA_SERVER = "linda/server"
+LINDA_CLIENT = "linda/client"
