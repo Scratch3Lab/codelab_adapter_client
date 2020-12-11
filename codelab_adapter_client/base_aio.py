@@ -2,6 +2,7 @@ import zmq
 import zmq.asyncio
 import time
 import logging
+import uuid
 import sys
 import msgpack
 from abc import ABCMeta, abstractmethod
@@ -25,7 +26,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         codelab_adapter_ip_address=None,
         subscriber_port='16103',
         publisher_port='16130',
-        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC],
+        subscriber_list=[SCRATCH_TOPIC, NODES_OPERATE_TOPIC, LINDA_CLIENT],
         loop_time=ZMQ_LOOP_TIME,  # todo config by user
         connect_time=0.3,
         external_message_processor=None,
@@ -232,12 +233,13 @@ class AdapterNodeAio(MessageNodeAio):
             self.WEIGHT = 0
 
         if not start_cmd_message_id:
-            # node from cmd, extension from param
-            parser = argparse.ArgumentParser()
-            parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
-                        help="start cmd message id, a number or uuid(string)")
-            args = parser.parse_args()
-            start_cmd_message_id = args.message_id
+            if "--start-cmd-message-id" in sys.argv:
+                # node from cmd, extension from param
+                parser = argparse.ArgumentParser()
+                parser.add_argument("--start-cmd-message-id", dest="message_id", default=None,
+                            help="start cmd message id, a number or uuid(string)")
+                args = parser.parse_args()
+                start_cmd_message_id = args.message_id                
 
         self.start_cmd_message_id = start_cmd_message_id 
         self.logger.debug(f"start_cmd_message_id -> {self.start_cmd_message_id}")
@@ -246,6 +248,7 @@ class AdapterNodeAio(MessageNodeAio):
             pass # 放到程序中启动确认
             self.event_loop.run_until_complete(self.started())
 
+        self.linda_wait_futures = []
         
 
     async def started(self):
@@ -393,6 +396,12 @@ class AdapterNodeAio(MessageNodeAio):
                 for handler in handlers:
                     handler(topic, payload)
                 '''
+                
+        if topic in LINDA_CLIENT:
+            for (message_id, future) in self.linda_wait_futures:
+                if message_id == payload.get("message_id"):
+                    future.set_result(payload["tuple"])
+                    break
 
     async def terminate(self, stop_cmd_message_id=None):
         '''
@@ -414,3 +423,67 @@ class AdapterNodeAio(MessageNodeAio):
                 await asyncio.sleep(0.1)
             # super().terminate()
             await self.clean_up()
+    
+    ##############
+    # linda 和线程future几乎一模一样
+    async def _send_to_linda_server(self, operate, _tuple):
+        '''
+        send to linda server and wait it （client block / future）
+        return:
+            message_id
+        '''
+        topic = LINDA_SERVER # to 
+        payload = self.message_template()["payload"]
+        payload["message_id"] = uuid.uuid4().hex
+        payload["operate"] = operate
+        payload["tuple"] = _tuple
+        payload["content"] = _tuple # 是否必要
+        
+        self.logger.debug(
+            f"{self.name} publish: topic: {topic} payload:{payload}")
+
+        await self.publish_payload(payload, topic)
+        return payload["message_id"]
+
+
+    async def _send_and_wait(self, operate, _tuple, timeout):
+        message_id = await self._send_to_linda_server(operate, _tuple)
+        '''
+        return future timeout
+        futurn 被消息循环队列释放
+        
+        timeout 
+        https://docs.python.org/3/library/asyncio-task.html#asyncio.wait_for 
+        '''
+        f = asyncio.Future() # todo asyncio future
+        self.linda_wait_futures.append((message_id, f))
+        # todo 加入到队列里: (message_id, f) f.set_result(tuple)
+        try:
+            return await asyncio.wait_for(f, timeout=timeout) # result() 非阻塞 查询状态
+        except asyncio.TimeoutError:
+            # print('timeout!')
+            raise asyncio.TimeoutError(f'timeout: {timeout}; message_id: {message_id}')
+
+
+    async def linda_in(self, _tuple: list, timeout=None):
+        return await self._send_and_wait("in", _tuple, timeout)
+    
+    async def linda_inp(self, _tuple: list):
+        return await self._send_and_wait("inp", _tuple, None)
+
+    async def linda_rd(self, _tuple: list, timeout=None):
+        return await self._send_and_wait("rd", _tuple, timeout)
+
+    async def linda_rdp(self, _tuple: list):
+        return await self._send_and_wait("rdp", _tuple, None)
+    
+    async def linda_out(self, _tuple):
+        await self._send_to_linda_server("out", _tuple)
+
+    # helper
+    async def linda_dump(self, timeout=None):
+        return await self._send_and_wait("dump", ["dump"], timeout)
+
+    # helper
+    async def linda_status(self, timeout=None):
+        return await self._send_and_wait("status", ["status"], timeout)

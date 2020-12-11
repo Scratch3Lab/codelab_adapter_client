@@ -437,25 +437,14 @@ class AdapterNode(MessageNode):
         self._send_to_linda_server("out", _tuple)
 
 
-    # helper
+    # helper , 立刻返回
     def linda_dump(self, timeout=None):
-        '''
-        no block
-        '''
         return self._send_and_wait("dump", ["dump"], timeout)
 
-    # helper
     def linda_status(self, timeout=None):
-        '''
-        no block
-        '''
         return self._send_and_wait("status", ["status"], timeout)
 
-
     def linda_reboot(self, timeout=None):
-        '''
-        no block
-        '''
         return self._send_and_wait("reboot", ["reboot"], timeout)
         
     ########################
