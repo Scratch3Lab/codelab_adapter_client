@@ -11,12 +11,20 @@ channel
     *  stdin: input from user
     *  IOPub
         *  stdout, stderr, debugging events
+
+有两种视角看待消息的流向
+    目的地
+    订阅
+        出发点和目的地是相对的！
+        publish 到目的地
+
+分离管道和意义
 '''
 
 # notification
 # adapter data
 # from to
-ADAPTER_TOPIC = "adapter/nodes/data"  # 来自 Adapter 插件的消息，关注方向
+ADAPTER_TOPIC = "adapter/nodes/data"  # 来自 Adapter 插件的消息，关注方向，Scratch的目的地，Adapter Node的发出地
 
 # scratch command
 SCRATCH_TOPIC = "scratch/extensions/command"

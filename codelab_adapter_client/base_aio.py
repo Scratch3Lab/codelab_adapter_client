@@ -397,7 +397,8 @@ class AdapterNodeAio(MessageNodeAio):
                     handler(topic, payload)
                 '''
                 
-        if topic in LINDA_CLIENT:
+        if topic == LINDA_CLIENT:
+            # 来自Linda的消息，透明发往 web（使用 socketio 管道）
             for (message_id, future) in self.linda_wait_futures:
                 if message_id == payload.get("message_id"):
                     future.set_result(payload["tuple"])
