@@ -11,6 +11,7 @@ import urllib.request
 import re
 import base64
 import socket
+from enum import Enum
 
 from loguru import logger
 
@@ -262,3 +263,16 @@ class LindaTimeoutError(Exception):
 
 class NodeTerminateError(Exception):
     pass
+
+class LindaOperate(Enum):
+    OUT = "out"
+    IN = "in"
+    INP = "inp"
+    RD = "rd"
+    RDP = "rdp"
+    # helper
+    DUMP = "dump"
+    STATUS = "status"
+    REBOOT = "reboot"
+
+    

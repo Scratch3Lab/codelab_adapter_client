@@ -12,7 +12,7 @@ import argparse
 
 from codelab_adapter_client.topic import *
 # from codelab_adapter_client.topic import ADAPTER_TOPIC, SCRATCH_TOPIC, NOTIFICATION_TOPIC, EXTS_OPERATE_TOPIC
-from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, NodeTerminateError
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, NodeTerminateError, LindaOperate
 from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
@@ -442,7 +442,7 @@ class AdapterNodeAio(MessageNodeAio):
         topic = LINDA_SERVER # to 
         payload = self.message_template()["payload"]
         payload["message_id"] = uuid.uuid4().hex
-        payload["operate"] = operate
+        payload["operate"] = operate.value
         payload["tuple"] = _tuple
         payload["content"] = _tuple # 是否必要
         
@@ -454,6 +454,10 @@ class AdapterNodeAio(MessageNodeAio):
 
 
     async def _send_and_wait(self, operate, _tuple, timeout):
+        # operate 枚举
+        assert isinstance(operate, LindaOperate)
+        # assert isinstance(_tuple, list)
+        assert isinstance(_tuple, list)
         message_id = await self._send_to_linda_server(operate, _tuple)
         '''
         return future timeout
@@ -473,24 +477,28 @@ class AdapterNodeAio(MessageNodeAio):
 
 
     async def linda_in(self, _tuple: list, timeout=None):
-        return await self._send_and_wait("in", _tuple, timeout)
+        return await self._send_and_wait(LindaOperate.IN, _tuple, timeout)
     
     async def linda_inp(self, _tuple: list):
-        return await self._send_and_wait("inp", _tuple, None)
+        return await self._send_and_wait(LindaOperate.INP, _tuple, None)
 
     async def linda_rd(self, _tuple: list, timeout=None):
-        return await self._send_and_wait("rd", _tuple, timeout)
+        return await self._send_and_wait(LindaOperate.RD, _tuple, timeout)
 
     async def linda_rdp(self, _tuple: list):
-        return await self._send_and_wait("rdp", _tuple, None)
+        return await self._send_and_wait(LindaOperate.RDP, _tuple, None)
     
     async def linda_out(self, _tuple):
-        await self._send_to_linda_server("out", _tuple)
+        return await self._send_and_wait(LindaOperate.OUT, _tuple, None)
+        # await self._send_to_linda_server(LindaOperate.OUT, _tuple)
 
     # helper
     async def linda_dump(self, timeout=None):
-        return await self._send_and_wait("dump", ["dump"], timeout)
+        return await self._send_and_wait(LindaOperate.DUMP, ["dump"], timeout)
 
     # helper
     async def linda_status(self, timeout=None):
-        return await self._send_and_wait("status", ["status"], timeout)
+        return await self._send_and_wait(LindaOperate.STATUS, ["status"], timeout)
+    
+    async def linda_reboot(self, timeout=None):
+        return await self._send_and_wait(LindaOperate.REBOOT, ["reboot"], timeout)

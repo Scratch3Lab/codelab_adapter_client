@@ -13,7 +13,7 @@ import zmq
 # import psutil
 
 from codelab_adapter_client.topic import *
-from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, LindaTimeoutError, NodeTerminateError
+from codelab_adapter_client.utils import threaded, TokenBucket, ZMQ_LOOP_TIME, LindaTimeoutError, NodeTerminateError, LindaOperate
 from codelab_adapter_client._version import protocol_version
 from codelab_adapter_client.session import _message_template
 
@@ -370,7 +370,7 @@ class AdapterNode(MessageNode):
 
         payload = self.message_template()["payload"]
         payload["message_id"] = uuid.uuid4().hex
-        payload["operate"] = operate
+        payload["operate"] = operate.value # 将枚举数据变成序列化
         payload["tuple"] = _tuple
         payload["content"] = _tuple # 是否必要
         
@@ -382,6 +382,8 @@ class AdapterNode(MessageNode):
 
 
     def _send_and_wait(self, operate, _tuple, timeout):
+        assert isinstance(operate, LindaOperate)
+        assert isinstance(_tuple, list)
         # 确保 running， 接收到消息
         if not self._running:
             # loop
@@ -416,10 +418,10 @@ class AdapterNode(MessageNode):
         linda in
         block , 不要timeout？
         '''
-        return self._send_and_wait("in", _tuple, timeout)
+        return self._send_and_wait(LindaOperate.IN, _tuple, timeout)
 
     def linda_inp(self, _tuple: list):
-        return self._send_and_wait("inp", _tuple, None)
+        return self._send_and_wait(LindaOperate.INP, _tuple, None)
 
 
     # 阻塞吗？
@@ -429,29 +431,29 @@ class AdapterNode(MessageNode):
 
         如果当前没有 client 要等待吗（服务端如果看到相同的会再次发送，不等待的服务端返回 [], 先做阻塞的），行为在client决定，已经收到通知了
         '''
-        return self._send_and_wait("rd", _tuple, timeout)
+        return self._send_and_wait(LindaOperate.RD, _tuple, timeout)
 
     def linda_rdp(self, _tuple: list):
-        return self._send_and_wait("rdp", _tuple, None)
+        return self._send_and_wait(LindaOperate.RDP, _tuple, None)
 
 
     def linda_out(self, _tuple):
-        '''
-        linda out
-        no block
-        '''
-        self._send_to_linda_server("out", _tuple)
+        # 限制速率， 每秒30帧
+        # out 是否也确认，以此限制速率，确保收到
+        # self._send_to_linda_server(LindaOperate.OUT, _tuple)
+        return self._send_and_wait(LindaOperate.OUT, _tuple, None)
+        
 
 
     # helper , 立刻返回
     def linda_dump(self, timeout=None):
-        return self._send_and_wait("dump", ["dump"], timeout)
+        return self._send_and_wait(LindaOperate.DUMP, ["dump"], timeout)
 
     def linda_status(self, timeout=None):
-        return self._send_and_wait("status", ["status"], timeout)
+        return self._send_and_wait(LindaOperate.STATUS, ["status"], timeout)
 
     def linda_reboot(self, timeout=None):
-        return self._send_and_wait("reboot", ["reboot"], timeout)
+        return self._send_and_wait(LindaOperate.REBOOT, ["reboot"], timeout)
         
     ########################
 
