@@ -14,6 +14,7 @@ import time
 import click
 import ast
 from codelab_adapter_client import AdapterNode
+from codelab_adapter_client.topic import LINDA_SERVER, LINDA_CLIENT
 
 
 class PythonLiteralOption(click.Option):
@@ -32,16 +33,29 @@ class CatchAllExceptions(click.Group):
         except Exception as e:
             click.echo(e)
         finally:
+
             mynode.terminate()  # ok!
 
 
 class MyNode(AdapterNode):
     NODE_ID = "eim/cli_linda_client"
 
-    def __init__(self):
+    def __init__(self):  # todo 发给 Linda 的也订阅
         super().__init__()
+        # self.set_subscriber_topic(LINDA_SERVER) # add topic
+        self.set_subscriber_topic('')
+
+    '''
+    def _linda_message_handle(self, topic, payload):
+        print(topic, payload)
+    '''
+
+    def message_handle(self, topic, payload):
+        if topic in [LINDA_SERVER, LINDA_CLIENT]:
+            print(topic, payload)
 
 
+# tudo， help不要初始化，需要放到cli中，ctx传递到CatchAllExceptions
 mynode = MyNode()
 mynode.receive_loop_as_thread()
 time.sleep(0.05)
@@ -107,38 +121,41 @@ def in_(ctx, data):  # replace
     return ctx["node"]
 
 
-@click.command("inp")
+@click.command()
 @click.option('-d', '--data', cls=PythonLiteralOption, default=[])
 @click.pass_obj
 def inp(ctx, data):  # replace
     '''
     inp(in but Non-blocking) the tuple to Linda tuple space
     '''
-    # codelab-linda in --data '[1, "*"]'
-
+    # codelab-linda inp --data '[1, "*"]'
     assert isinstance(data, list)
     res = ctx["node"].linda_inp(data)
     click.echo(res)
     return ctx["node"]
 
 
+@click.command()
+@click.pass_obj
+def monitor(ctx):  # replace
+    '''
+    linda message monitor
+    '''
+    while True:
+        time.sleep(1)
+
+
 @cli.resultcallback()
 def process_result(result, **kwargs):
     # click.echo(f'After command: {result} {kwargs}')
     # result is node
-    if result._running:
+    if result and result._running:
         result.terminate()
 
-
-'''
-if __name__ == '__main__':
-    cli(obj={})
-
-'''
 
 cli.add_command(dump)
 cli.add_command(out)
 cli.add_command(in_)
 cli.add_command(inp)
-
+cli.add_command(monitor)
 # 不阻塞一直跑

@@ -594,11 +594,17 @@ class AdapterNode(MessageNode):
                     handler(topic, payload)
                 '''
         
-        if topic in LINDA_CLIENT:
+        if topic == LINDA_CLIENT:
             for (message_id, future) in self.linda_wait_futures:
                 if message_id == payload.get("message_id"):
                     future.set_result(payload["tuple"])
                     break
+            '''
+            if hasattr(self, "_linda_message_handle"):
+                getattr(self, "_linda_message_handle")(topic, payload)
+            
+            # todo : 如果存在 _linda_message_handle，则调用，所有的都收
+            '''
             
 
     def terminate(self, stop_cmd_message_id=None):
