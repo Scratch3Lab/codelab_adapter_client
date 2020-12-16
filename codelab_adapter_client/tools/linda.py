@@ -5,10 +5,11 @@ codelab-linda --rd [1, "*"]
 codelab-linda --in [1, "hello"]
 codelab-linda --dump
 
-list 解析，json 输出，彩色
-子命令
+todo
+    json 输出，彩色
 
-click, adapter full 已经内置 click
+click
+    adapter full 已经内置 click
 '''
 import time
 import click
@@ -38,7 +39,7 @@ class CatchAllExceptions(click.Group):
 
 
 class MyNode(AdapterNode):
-    NODE_ID = "eim/cli_linda_client"
+    NODE_ID = "linda/linda_cli" # 是否有问题？
 
     def __init__(self):  # todo 发给 Linda 的也订阅
         super().__init__()
@@ -47,12 +48,12 @@ class MyNode(AdapterNode):
 
     '''
     def _linda_message_handle(self, topic, payload):
-        print(topic, payload)
+        click.echo(topic, payload)
     '''
 
     def message_handle(self, topic, payload):
         if topic in [LINDA_SERVER, LINDA_CLIENT]:
-            print(topic, payload)
+            click.echo(f'{topic}, {payload}')
 
 
 # tudo， help不要初始化，需要放到cli中，ctx传递到CatchAllExceptions
@@ -158,4 +159,3 @@ cli.add_command(out)
 cli.add_command(in_)
 cli.add_command(inp)
 cli.add_command(monitor)
-# 不阻塞一直跑
