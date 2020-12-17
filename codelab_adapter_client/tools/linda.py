@@ -100,7 +100,7 @@ def out(ctx, data):
     # codelab-linda out --data '[1, "hello"]'
     # codelab-linda --ip '192.168.31.111'  out --data '[1, "hello"]' # 注意参数位置！
     assert isinstance(data, list)
-    click.echo(f'ip: {ctx["ip"]}')
+    # click.echo(f'ip: {ctx["ip"]}')
     res = ctx['node'].linda_out(data)
     click.echo(res)
     return ctx['node']

@@ -1,5 +1,5 @@
 '''
-py.test tests/test_linda.py  -s
+py.test tests/test_linda_client.py -s
 
 Adapter运行之后，跑测试
 '''
