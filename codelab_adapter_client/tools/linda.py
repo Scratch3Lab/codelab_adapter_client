@@ -36,8 +36,8 @@ class CatchAllExceptions(click.Group):
         except Exception as e:
             click.echo(e)
         finally:
-
-            mynode.terminate()  # ok!
+            if globals().get('mynode') and mynode._running:
+                mynode.terminate()  # ok!
 
 
 class MyNode(AdapterNode):
@@ -70,6 +70,7 @@ class MyNode(AdapterNode):
               envvar='IP',
               help="IP Address of Adapter",
               default="127.0.0.1",
+              show_default=True,
               required=False)
 @click.pass_context
 def cli(ctx, ip):
@@ -87,17 +88,6 @@ def cli(ctx, ip):
 
     ctx.obj['node'] = mynode
     ctx.obj['ip'] = ip
-
-
-@click.command()
-@click.pass_obj
-def dump(ctx):
-    '''
-    dump all tuples from Linda tuple space
-    '''
-    res = ctx['node'].linda_dump()
-    click.echo(res)
-    return ctx['node']
 
 
 @cli.command()
@@ -121,7 +111,7 @@ def out(ctx, data):
 @click.pass_obj
 def in_(ctx, data):  # replace
     '''
-    in the tuple to Linda tuple space
+    match and remove a tuple from Linda tuple space
     '''
     # codelab-linda in --data '[1, "*"]'
 
@@ -130,13 +120,36 @@ def in_(ctx, data):  # replace
     click.echo(res)
     return ctx["node"]
 
+@click.command()
+@click.option('-d', '--data', cls=PythonLiteralOption, default=[])
+@click.pass_obj
+def rd(ctx, data):  # replace
+    '''
+    rd(read only) a tuple from Linda tuple space
+    '''
+    assert isinstance(data, list)
+    res = ctx["node"].linda_rd(data)
+    click.echo(res)
+    return ctx["node"]
+
+@click.command()
+@click.option('-d', '--data', cls=PythonLiteralOption, default=[])
+@click.pass_obj
+def rdp(ctx, data):  # replace
+    '''
+    rd(rd but Non-blocking) a tuple from Linda tuple space
+    '''
+    assert isinstance(data, list)
+    res = ctx["node"].linda_rdp(data)
+    click.echo(res)
+    return ctx["node"]
 
 @click.command()
 @click.option('-d', '--data', cls=PythonLiteralOption, default=[])
 @click.pass_obj
 def inp(ctx, data):  # replace
     '''
-    inp(in but Non-blocking) the tuple to Linda tuple space
+    in(in but Non-blocking) a tuple from Linda tuple space
     '''
     # codelab-linda inp --data '[1, "*"]'
     assert isinstance(data, list)
@@ -157,6 +170,36 @@ def monitor(ctx):  # replace
         else:
             time.sleep(0.1)
 
+@click.command()
+@click.pass_obj
+def dump(ctx):
+    '''
+    dump all tuples from Linda tuple space
+    '''
+    res = ctx['node'].linda_dump()
+    click.echo(res)
+    return ctx['node']
+
+@click.command()
+@click.pass_obj
+def status(ctx):
+    '''
+    get Linda tuple space status
+    '''
+    res = ctx['node'].linda_status()
+    click.echo(res)
+    return ctx['node']
+
+@click.command()
+@click.pass_obj
+def reboot(ctx):
+    '''
+    reboot(clean) Linda tuple space
+    '''
+    res = ctx['node'].linda_reboot()
+    click.echo(res)
+    return ctx['node']
+
 
 @cli.resultcallback()
 def process_result(result, **kwargs):
@@ -166,8 +209,17 @@ def process_result(result, **kwargs):
         result.terminate()
 
 
+# helper
 cli.add_command(dump)
+cli.add_command(status)
+cli.add_command(reboot)
+
+# core
 cli.add_command(out)
 cli.add_command(in_)
 cli.add_command(inp)
+cli.add_command(rd)
+cli.add_command(rdp)
+
+# monitor
 cli.add_command(monitor)
