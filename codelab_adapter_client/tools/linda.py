@@ -12,8 +12,10 @@ click
     adapter full 已经内置 click
 '''
 import time
-import click
+import queue
 import ast
+
+import click
 from codelab_adapter_client import AdapterNode
 from codelab_adapter_client.topic import LINDA_SERVER, LINDA_CLIENT
 
@@ -41,25 +43,25 @@ class CatchAllExceptions(click.Group):
 class MyNode(AdapterNode):
     NODE_ID = "linda/linda_cli" # 是否有问题？
 
-    def __init__(self):  # todo 发给 Linda 的也订阅
-        super().__init__()
+    def __init__(self, codelab_adapter_ip_address):  # todo 发给 Linda 的也订阅
+        super().__init__(codelab_adapter_ip_address=codelab_adapter_ip_address)
         # self.set_subscriber_topic(LINDA_SERVER) # add topic
         self.set_subscriber_topic('')
+        self.q = queue.Queue()
 
-    '''
+
     def _linda_message_handle(self, topic, payload):
-        click.echo(topic, payload)
+        # click.echo(f'{topic}, {payload}')
+        self.q.put((topic, payload))
+    
     '''
-
     def message_handle(self, topic, payload):
         if topic in [LINDA_SERVER, LINDA_CLIENT]:
             click.echo(f'{topic}, {payload}')
-
+    '''
 
 # tudo， help不要初始化，需要放到cli中，ctx传递到CatchAllExceptions
-mynode = MyNode()
-mynode.receive_loop_as_thread()
-time.sleep(0.05)
+
 
 
 @click.group(cls=CatchAllExceptions)
@@ -75,7 +77,14 @@ def cli(ctx, ip):
     talk with linda from cli
     '''
     # ctx.obj = mynode # todo ip ，多参数
+    global mynode # 给退出时候用
+    
     ctx.ensure_object(dict)
+    mynode = MyNode(ip)
+    mynode.receive_loop_as_thread()
+    
+    time.sleep(0.05)
+
     ctx.obj['node'] = mynode
     ctx.obj['ip'] = ip
 
@@ -142,7 +151,9 @@ def monitor(ctx):  # replace
     '''
     linda message monitor
     '''
-    while True:
+    while ctx["node"]._running:
+        if not ctx["node"].q.empty():
+            click.echo(ctx["node"].q.get())
         time.sleep(1)
 
 
