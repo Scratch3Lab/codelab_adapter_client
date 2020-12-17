@@ -599,7 +599,8 @@ class AdapterNode(MessageNode):
                 if message_id == payload.get("message_id"):
                     future.set_result(payload["tuple"])
                     break
-            
+
+        if topic in [LINDA_CLIENT, LINDA_SERVER]:
             if hasattr(self, "_linda_message_handle"):
                 getattr(self, "_linda_message_handle")(topic, payload)
             

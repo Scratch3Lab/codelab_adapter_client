@@ -154,7 +154,8 @@ def monitor(ctx):  # replace
     while ctx["node"]._running:
         if not ctx["node"].q.empty():
             click.echo(ctx["node"].q.get())
-        time.sleep(1)
+        else:
+            time.sleep(0.1)
 
 
 @cli.resultcallback()
