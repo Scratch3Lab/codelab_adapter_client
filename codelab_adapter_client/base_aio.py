@@ -162,9 +162,12 @@ class MessageNodeAio(metaclass=ABCMeta):
 
         while self._running:
             # NOBLOCK
+            # todo create_task
             try:
                 data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
-                # data = await self.subscriber.recv_multipart()
+                # data = self.subscriber.recv_multipart()
+                # data = await asyncio.wait_for(data, timeout=0.001)
+                # data = await self.subscriber.recv_multipart() # await future
                 try:
                     # some data is invalid
                     topic = data[0].decode()
@@ -172,10 +175,17 @@ class MessageNodeAio(metaclass=ABCMeta):
                 except Exception as e:
                     self.logger.error(str(e))
                     # todo
+                    continue # 丢弃一帧数据
                 await self.message_handle(topic, payload)
             except zmq.error.Again:
                 await asyncio.sleep(self.loop_time)
-
+            '''
+            except Exception as e:
+                # timeout
+                pass
+                # self.logger.error(e)
+            '''
+            
     async def start_the_receive_loop(self):
         self.receive_loop_task = self.event_loop.create_task(
             self.receive_loop())
