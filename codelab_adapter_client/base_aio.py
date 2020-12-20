@@ -155,18 +155,19 @@ class MessageNodeAio(metaclass=ABCMeta):
         This method may be overwritten to meet the needs
         of the application before handling received messages.
         """
-
         if self.subscriber_list:
             for topic in self.subscriber_list:
                 await self.set_subscriber_topic(topic)
-
+        # await asyncio.sleep(0.3)
+        
         while self._running:
             # NOBLOCK
             # todo create_task
             try:
                 data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
-                # data = self.subscriber.recv_multipart()
-                # data = await asyncio.wait_for(data, timeout=0.001)
+                # data = await self.subscriber.recv_multipart() # webui 卡住，其他正常！ CPU占用低，发得出去 收不到
+                # self.logger.debug(f'{data}')
+                #data = await asyncio.wait_for(data, timeout=0.001)
                 # data = await self.subscriber.recv_multipart() # await future
                 try:
                     # some data is invalid
@@ -179,12 +180,9 @@ class MessageNodeAio(metaclass=ABCMeta):
                 await self.message_handle(topic, payload)
             except zmq.error.Again:
                 await asyncio.sleep(self.loop_time)
-            '''
             except Exception as e:
-                # timeout
-                pass
-                # self.logger.error(e)
-            '''
+                # recv_multipart() timeout
+                self.logger.error(e)
             
     async def start_the_receive_loop(self):
         self.receive_loop_task = self.event_loop.create_task(

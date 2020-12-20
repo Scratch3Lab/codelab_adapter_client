@@ -19,6 +19,7 @@ from codelab_adapter_client.session import _message_template
 
 logger = logging.getLogger(__name__)
 
+SPEED_DEBUG = False
 
 class MessageNode(metaclass=ABCMeta):
     # jupyter client Session: https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L249
@@ -138,6 +139,8 @@ class MessageNode(metaclass=ABCMeta):
             message = msgpack.packb(payload, use_bin_type=True)
 
             pub_envelope = topic.encode()
+            if SPEED_DEBUG:
+                self.logger.debug(f"SPEED_DEBUG-publish_payload: {time.time()}")
             self.publisher.send_multipart([pub_envelope, message])
         else:
             now = time.time()
@@ -552,6 +555,7 @@ class AdapterNode(MessageNode):
 
         default sub: [SCRATCH_TOPIC, NODES_OPERATE_TOPIC]
         """
+        self.logger.debug(f"SPEED_DEBUG-message_handle: {time.time()}, topic:{topic}")
         if self.external_message_processor:
             # handle all sub messages
             # to handle websocket message
