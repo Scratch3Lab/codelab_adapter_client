@@ -164,8 +164,8 @@ class MessageNodeAio(metaclass=ABCMeta):
             # NOBLOCK
             # todo create_task
             try:
-                data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
-                # data = await self.subscriber.recv_multipart() # webui 卡住，其他正常！ CPU占用低，发得出去 收不到
+                # data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
+                data = await self.subscriber.recv_multipart()
                 # self.logger.debug(f'{data}')
                 #data = await asyncio.wait_for(data, timeout=0.001)
                 # data = await self.subscriber.recv_multipart() # await future

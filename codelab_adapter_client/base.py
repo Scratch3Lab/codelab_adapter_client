@@ -555,7 +555,8 @@ class AdapterNode(MessageNode):
 
         default sub: [SCRATCH_TOPIC, NODES_OPERATE_TOPIC]
         """
-        self.logger.debug(f"SPEED_DEBUG-message_handle: {time.time()}, topic:{topic}")
+        if SPEED_DEBUG:
+            self.logger.debug(f"SPEED_DEBUG-message_handle: {time.time()}, topic:{topic}")
         if self.external_message_processor:
             # handle all sub messages
             # to handle websocket message
