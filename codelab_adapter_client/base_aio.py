@@ -34,7 +34,9 @@ class MessageNodeAio(metaclass=ABCMeta):
         event_loop=None,
         token=None,
         bucket_token=100,
-        bucket_fill_rate=100):
+        bucket_fill_rate=100,
+        recv_mode = "noblock",
+        ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -48,6 +50,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         self.last_pub_time = time.time()
         self.bucket_token = bucket_token
         self.bucket_fill_rate = bucket_fill_rate
+        self.recv_mode = recv_mode
         self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self._running = True  # use it to receive_loop
         self.logger = logger
@@ -164,8 +167,10 @@ class MessageNodeAio(metaclass=ABCMeta):
             # NOBLOCK
             # todo create_task
             try:
-                # data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
-                data = await self.subscriber.recv_multipart()
+                if self.recv_mode == "noblock":
+                    data = await self.subscriber.recv_multipart(zmq.NOBLOCK)
+                else:
+                    data = await self.subscriber.recv_multipart()
                 # self.logger.debug(f'{data}')
                 #data = await asyncio.wait_for(data, timeout=0.001)
                 # data = await self.subscriber.recv_multipart() # await future
@@ -228,7 +233,6 @@ class AdapterNodeAio(MessageNodeAio):
         :param connect_time: Allow the node to connect to adapter
         '''
         super().__init__(*args, **kwargs)
-
         self.ADAPTER_TOPIC = ADAPTER_TOPIC  # message topic: the message from adapter
         self.SCRATCH_TOPIC = SCRATCH_TOPIC  # message topic: the message from scratch
         if not hasattr(self, 'TOPIC'):

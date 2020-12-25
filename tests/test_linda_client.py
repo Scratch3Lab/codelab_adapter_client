@@ -12,19 +12,19 @@ from codelab_adapter_client import AdapterNode
 from codelab_adapter_client.utils import LindaTimeoutError
 
 class MyNode(AdapterNodeAio):
-    NODE_ID = "eim/extension_python"
+    NODE_ID = "linda/aio/test"
 
     def __init__(self):
         super().__init__()
 
 class MySyncNode(AdapterNode):
-    NODE_ID = "eim/node_alphamini"
+    NODE_ID = "linda/sync/test"
 
     def __init__(self):
         super().__init__()
 
 async def _async_test_main(node):    
-    task = asyncio.create_task(node.receive_loop()) # todo: 潜在 bug
+    task = asyncio.create_task(node.receive_loop())
     await asyncio.sleep(0.1) # 等待管道建立
     _tuple = ["test_linda"]
     # reboot 
@@ -71,13 +71,7 @@ async def _async_test_main(node):
     res = await node.linda_dump()
     assert res == []
     # in
-
     await node.terminate()
-
-def test_async_linda_client():
-    node = MyNode()
-    asyncio.run(_async_test_main(node))
-
 
 def test_sync_linda_client():
     node = MySyncNode()
@@ -115,7 +109,9 @@ def test_sync_linda_client():
     res = node.linda_reboot()
     assert res == []
 
-
+def test_async_linda_client():
+    node = MyNode()
+    asyncio.run(_async_test_main(node)) # 不退出？
 
     
     # 创建
