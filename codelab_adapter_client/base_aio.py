@@ -444,6 +444,9 @@ class AdapterNodeAio(MessageNodeAio):
         return:
             message_id
         '''
+        assert isinstance(operate, LindaOperate)
+        # assert isinstance(_tuple, list)
+        assert isinstance(_tuple, list)
         if not self._running:
             # loop
             Exception(f"_running: {self._running}") 
@@ -463,9 +466,6 @@ class AdapterNodeAio(MessageNodeAio):
 
     async def _send_and_wait(self, operate, _tuple, timeout):
         # operate 枚举
-        assert isinstance(operate, LindaOperate)
-        # assert isinstance(_tuple, list)
-        assert isinstance(_tuple, list)
         message_id = await self._send_to_linda_server(operate, _tuple)
         '''
         return future timeout
@@ -496,17 +496,23 @@ class AdapterNodeAio(MessageNodeAio):
     async def linda_rdp(self, _tuple: list):
         return await self._send_and_wait(LindaOperate.RDP, _tuple, None)
     
-    async def linda_out(self, _tuple):
-        return await self._send_and_wait(LindaOperate.OUT, _tuple, None)
+    async def linda_out(self, _tuple, wait=True):
+        if wait:
+            return await self._send_and_wait(LindaOperate.OUT, _tuple, None)
+        else:
+            return await self._send_to_linda_server(LindaOperate.OUT, _tuple) # message id 回执
         # await self._send_to_linda_server(LindaOperate.OUT, _tuple)
 
     # helper
-    async def linda_dump(self, timeout=None):
+    async def linda_dump(self):
+        timeout=None
         return await self._send_and_wait(LindaOperate.DUMP, ["dump"], timeout)
 
     # helper
-    async def linda_status(self, timeout=None):
+    async def linda_status(self):
+        timeout=None
         return await self._send_and_wait(LindaOperate.STATUS, ["status"], timeout)
     
-    async def linda_reboot(self, timeout=None):
+    async def linda_reboot(self):
+        timeout=None
         return await self._send_and_wait(LindaOperate.REBOOT, ["reboot"], timeout)

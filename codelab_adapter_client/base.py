@@ -369,6 +369,12 @@ class AdapterNode(MessageNode):
         return:
             message_id
         '''
+        assert isinstance(operate, LindaOperate)
+        assert isinstance(_tuple, list)
+        if not self._running:
+            # loop
+            Exception(f"_running: {self._running}") 
+
         topic = LINDA_SERVER # to 
 
         payload = self.message_template()["payload"]
@@ -385,13 +391,7 @@ class AdapterNode(MessageNode):
 
 
     def _send_and_wait(self, operate, _tuple, timeout):
-        assert isinstance(operate, LindaOperate)
-        assert isinstance(_tuple, list)
         # 确保 running， 接收到消息
-        if not self._running:
-            # loop
-            Exception(f"_running: {self._running}") 
-
         message_id = self._send_to_linda_server(operate, _tuple)
         '''
         return future timeout
@@ -440,22 +440,28 @@ class AdapterNode(MessageNode):
         return self._send_and_wait(LindaOperate.RDP, _tuple, None)
 
 
-    def linda_out(self, _tuple):
+    def linda_out(self, _tuple, wait=True):
         # 限制速率， 每秒30帧
         # out 是否也确认，以此限制速率，确保收到
         # self._send_to_linda_server(LindaOperate.OUT, _tuple)
-        return self._send_and_wait(LindaOperate.OUT, _tuple, None)
+        if wait:
+            return self._send_and_wait(LindaOperate.OUT, _tuple, None)
+        else:
+            return self._send_to_linda_server(LindaOperate.OUT, _tuple) # message id 回执
         
 
 
     # helper , 立刻返回
-    def linda_dump(self, timeout=None):
+    def linda_dump(self):
+        timeout=None
         return self._send_and_wait(LindaOperate.DUMP, ["dump"], timeout)
 
-    def linda_status(self, timeout=None):
+    def linda_status(self):
+        timeout=None
         return self._send_and_wait(LindaOperate.STATUS, ["status"], timeout)
 
-    def linda_reboot(self, timeout=None):
+    def linda_reboot(self):
+        timeout=None
         return self._send_and_wait(LindaOperate.REBOOT, ["reboot"], timeout)
         
     ########################
