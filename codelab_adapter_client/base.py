@@ -37,7 +37,9 @@ class MessageNode(metaclass=ABCMeta):
         receive_loop_idle_addition=None,
         token=None,
         bucket_token=100,
-        bucket_fill_rate=100):
+        bucket_fill_rate=100,
+        recv_mode = "noblock",
+        ):
         '''
         :param codelab_adapter_ip_address: Adapter IP Address -
                                       default: 127.0.0.1
@@ -51,6 +53,7 @@ class MessageNode(metaclass=ABCMeta):
         self.last_pub_time = time.time
         self.bucket_token = bucket_token
         self.bucket_fill_rate = bucket_fill_rate
+        self.recv_mode = recv_mode
         self.bucket = TokenBucket(bucket_token, bucket_fill_rate)
         self.logger = logger
         self._running = True  # use it to control Python thread, work with self.terminate()
@@ -166,7 +169,10 @@ class MessageNode(metaclass=ABCMeta):
         while self._running:
             try:
                 # https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/session.py#L814
-                data = self.subscriber.recv_multipart(zmq.NOBLOCK)  # NOBLOCK
+                if self.recv_mode == "noblock":
+                    data = self.subscriber.recv_multipart(zmq.NOBLOCK)  # NOBLOCK
+                else:
+                    data = self.subscriber.recv_multipart()
                 # unpackb
                 try:
                     # some data is invalid

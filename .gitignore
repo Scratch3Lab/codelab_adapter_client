@@ -106,3 +106,5 @@ venv3.7
 
 .DS_Store
 .vscode/
+
+env3.8/
