@@ -520,3 +520,13 @@ class AdapterNodeAio(MessageNodeAio):
     async def linda_reboot(self):
         timeout=None
         return await self._send_and_wait(LindaOperate.REBOOT, ["reboot"], timeout)
+    
+    async def is_connected(self, timeout=0.1):
+        # ping set timeout
+        _tuple = ["%%ping", "ping"]
+        try:
+            res = await self._send_and_wait(LindaOperate.OUT, _tuple, timeout=timeout)
+            return True
+        except asyncio.TimeoutError:
+            return False
+

@@ -7,6 +7,9 @@ codelab-linda --dump
 
 todo
     json 输出，彩色
+    ping
+        is_connected
+        往返视角
 
 click
     adapter full 已经内置 click
@@ -44,7 +47,7 @@ class MyNode(AdapterNode):
     NODE_ID = "linda/linda_cli" # 是否有问题？
 
     def __init__(self, codelab_adapter_ip_address):  # todo 发给 Linda 的也订阅
-        super().__init__(codelab_adapter_ip_address=codelab_adapter_ip_address)
+        super().__init__(codelab_adapter_ip_address=codelab_adapter_ip_address, recv_mode="block")
         # self.set_subscriber_topic(LINDA_SERVER) # add topic
         self.set_subscriber_topic('')
         self.q = queue.Queue()
@@ -172,6 +175,21 @@ def monitor(ctx):  # replace
 
 @click.command()
 @click.pass_obj
+def ping(ctx):  # replace
+    '''
+    ping linda server
+    '''
+    t1 = time.time()
+    res = ctx["node"].is_connected()
+    if res:
+        t2 = time.time()
+        click.echo(f"Online!({t2-t1:.5f}s)")
+    else:
+        click.echo("Offline!")
+
+
+@click.command()
+@click.pass_obj
 def dump(ctx):
     '''
     dump all tuples from Linda tuple space
@@ -223,3 +241,4 @@ cli.add_command(rdp)
 
 # monitor
 cli.add_command(monitor)
+cli.add_command(ping)

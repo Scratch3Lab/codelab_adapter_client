@@ -426,6 +426,9 @@ class AdapterNode(MessageNode):
             _tuple: list
         linda in
         block , 不要timeout？
+        todo 
+            返回future，由用户自己决定是否阻塞？ callback
+            参数 return_future = False
         '''
         return self._send_and_wait(LindaOperate.IN, _tuple, timeout)
 
@@ -642,6 +645,15 @@ class AdapterNode(MessageNode):
                     # time.sleep(0.1)
             
             self.clean_up()
+
+    def is_connected(self, timeout=0.1):
+        # ping set timeout
+        _tuple = ["%%ping", "ping"]
+        try:
+            res = self._send_and_wait(LindaOperate.OUT, _tuple, timeout=timeout)
+            return True
+        except LindaTimeoutError as e:
+            return False
 
 class JupyterNode(AdapterNode):
     def __init__(self, *args, **kwargs):
