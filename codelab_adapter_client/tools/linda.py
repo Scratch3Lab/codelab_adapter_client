@@ -46,8 +46,8 @@ class CatchAllExceptions(click.Group):
 class MyNode(AdapterNode):
     NODE_ID = "linda/linda_cli" # 是否有问题？
 
-    def __init__(self, codelab_adapter_ip_address):  # todo 发给 Linda 的也订阅
-        super().__init__(codelab_adapter_ip_address=codelab_adapter_ip_address, recv_mode="block")
+    def __init__(self, codelab_adapter_ip_address, recv_mode="noblock"):  # todo 发给 Linda 的也订阅
+        super().__init__(codelab_adapter_ip_address=codelab_adapter_ip_address, recv_mode=recv_mode)
         # self.set_subscriber_topic(LINDA_SERVER) # add topic
         self.set_subscriber_topic('')
         self.q = queue.Queue()
@@ -85,6 +85,12 @@ def cli(ctx, ip):
     
     ctx.ensure_object(dict)
     mynode = MyNode(ip)
+    '''
+    if ip in ["127.0.0.1", "localhost"]
+        mynode = MyNode(ip)
+    else:
+        mynode = MyNode(ip, recv_mode="block")
+    '''
     mynode.receive_loop_as_thread()
     
     time.sleep(0.05)
@@ -177,13 +183,13 @@ def monitor(ctx):  # replace
 @click.pass_obj
 def ping(ctx):  # replace
     '''
-    ping linda server
+    ping linda server. eg: codelab-linda --ip 192.168.31.100 ping
     '''
     t1 = time.time()
     res = ctx["node"].is_connected()
     if res:
         t2 = time.time()
-        click.echo(f"Online!({t2-t1:.5f}s)")
+        click.echo(f"Online!")
     else:
         click.echo("Offline!")
 
