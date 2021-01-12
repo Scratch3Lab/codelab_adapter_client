@@ -16,8 +16,7 @@ from enum import Enum
 from loguru import logger
 
 import uflash
-from codelab_adapter_client.settings import (CN_PIP_MIRRORS_HOST, PYTHON3_PATH,
-                                             USE_CN_PIP_MIRRORS, ZMQ_LOOP_TIME)
+from codelab_adapter_client.config import settings
 
 def get_adapter_home_path():
     dir = pathlib.Path.home() / "codelab_adapter"
@@ -50,11 +49,11 @@ def get_python3_path():
         # 普通模式 node
         return str(sys.executable)
 
-    if PYTHON3_PATH:
-        # 允许用户覆盖PYTHON3_PATH
+    if settings.PYTHON3_PATH:
+        # 允许用户覆盖settings.PYTHON3_PATH
         logger.info(
-            f"local python3_path-> {PYTHON3_PATH}, overwrite by user settings")
-        return PYTHON3_PATH
+            f"local python3_path-> {settings.PYTHON3_PATH}, overwrite by user settings")
+        return settings.PYTHON3_PATH
     # If it is not working,  Please replace python3_path with your local python3 path. shell: which python3
     if (platform.system() == "Darwin"):
         # which python3
@@ -150,8 +149,8 @@ def subprocess_args(include_stdout=True):
 
 
 def get_pip_mirrors():
-    if USE_CN_PIP_MIRRORS:
-        return f"-i {CN_PIP_MIRRORS_HOST}"  # settings
+    if settings.USE_CN_PIP_MIRRORS:
+        return f"-i {settings.CN_PIP_MIRRORS_HOST}"  # settings
     else:
         return ""
 

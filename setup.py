@@ -10,7 +10,8 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 REQUIRES_PYTHON = ">=3.6.0"
-requirements = ['pyzmq', 'msgpack-python', 'loguru', 'uflash', "zeroconf", "click"]
+# todo verison, pyzmq 18 19 20 ok
+requirements = ['pyzmq', 'msgpack-python==0.5.6', 'loguru==0.5.3', 'uflash==1.3.0', "zeroconf==0.28.8", "click==7.1.2", "dynaconf==3.1.2"]
 
 setup_requirements = [
     'pytest-runner',
@@ -52,6 +53,7 @@ setup(
             'codelab-message-trigger = codelab_adapter_client.tools.trigger:trigger',
             'codelab-message-pub = codelab_adapter_client.tools.pub:pub',
             'codelab-adapter-helper = codelab_adapter_client.tools.adapter_helper:adapter_helper',
+            'codelab-adapter-settings = codelab_adapter_client.tools.adapter_helper:list_settings',
             'codelab-mdns-registration = codelab_adapter_client.tools.mdns_registration:main',
             'codelab-mdns-browser = codelab_adapter_client.tools.mdns_browser:main',
             'codelab-linda = codelab_adapter_client.tools.linda:cli',            

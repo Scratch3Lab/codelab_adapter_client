@@ -1,0 +1,3 @@
+# dynaconf -i config.settings list
+# https://www.dynaconf.com/#initialize-dynaconf-on-your-project
+# ZMQ_LOOP_TIME = 0.01
