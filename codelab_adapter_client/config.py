@@ -64,3 +64,20 @@ if not settings.get("PYTHON3_PATH"):
 # `settings_files` = Load this files in the order.
 if not settings.get("NODE_LOG_PATH"):
     settings.NODE_LOG_PATH = NODE_LOG_PATH
+
+
+# 获取TOKEN
+def _get_adapter_home_token(codelab_adapter_dir):
+    '''
+    不同进程可以共享TOKEN，jupyter对port的操作类似
+    '''
+    token_file = pathlib.Path(codelab_adapter_dir) / '.token'
+    if token_file.exists():
+        with open(token_file) as f:
+            TOKEN = f.read()
+            return TOKEN
+
+if not settings.get("TOKEN"):
+    adapter_home_token = _get_adapter_home_token(settings.ADAPTER_HOME_PATH)
+    if adapter_home_token:
+        settings.TOKEN = adapter_home_token

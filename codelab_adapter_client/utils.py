@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import time
+import webbrowser
 import urllib
 import urllib.request
 import re
@@ -278,4 +279,20 @@ class LindaOperate(Enum):
     STATUS = "status"
     REBOOT = "reboot"
 
-    
+
+def _get_adapter_endpoint_with_token(path="/"):
+    if settings.WEB_UI_ENDPOINT:
+        return f'{settings.WEB_UI_ENDPOINT}?adapter_token={settings.TOKEN}'
+    else:
+        if settings.USE_SSL:
+            scheme = "https"
+        else:
+            scheme = "http"
+        endpoint = f'{scheme}://{settings.DEFAULT_ADAPTER_HOST}:12358{path}?adapter_token={settings.TOKEN}'
+        return endpoint    
+
+def open_webui():
+    # as http/https
+    url = _get_adapter_endpoint_with_token()
+    webbrowser.open(url)
+    logger.info(f'Open WebUI -> {url}')  # 统计从启动到打开webui时间, 在开发环境我的电脑下，1s
