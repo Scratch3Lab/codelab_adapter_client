@@ -19,15 +19,19 @@ import uflash
 from codelab_adapter_client.config import settings
 
 def get_adapter_home_path():
+    # 肯定存在，import client时已经确保
     dir = pathlib.Path.home() / "codelab_adapter"
-    # dir.mkdir(parents=True, exist_ok=True)
+    # dir.mkdir(parents=True, exist_ok=True) # 不存在就创建
     return dir
 
 
 def get_or_create_node_logger_dir():
+    '''
+    确保存在 ~/codelab_adapter/node_log
+    '''
     codelab_adapter_dir = get_adapter_home_path()
     dir = codelab_adapter_dir / "node_log"
-    dir.mkdir(parents=True, exist_ok=True)
+    # dir.mkdir(parents=True, exist_ok=True)
     return dir
 
 

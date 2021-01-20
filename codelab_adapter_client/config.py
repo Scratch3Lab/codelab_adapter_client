@@ -9,8 +9,15 @@ def is_in_china():
     if c_zone == "+0800":
         return True
 
+
 # user_settings_file = '~/codelab_adapter/user_settings.toml'
-ADAPTER_HOME = pathlib.Path.home() / "codelab_adapter"
+ADAPTER_HOME = pathlib.Path.home() / "codelab_adapter"  #  todo 从环境变量获取
+ADAPTER_HOME.mkdir(parents=True, exist_ok=True)
+NODE_LOG_PATH = ADAPTER_HOME / "node_log"
+NODE_LOG_PATH.mkdir(parents=True, exist_ok=True)
+# 确保NODE_LOG_PATH存在
+# 配置好用户目录
+
 user_settings_file = ADAPTER_HOME / 'user_settings.toml'
 
 global_settings_file = ADAPTER_HOME / "global_settings.toml"
@@ -51,7 +58,9 @@ if not settings.get("CN_PIP_MIRRORS_HOST"):
     settings.CN_PIP_MIRRORS_HOST = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 if not settings.get("PYTHON3_PATH"):
-    PYTHON3_PATH = None
+    settings.PYTHON3_PATH = None
 
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load this files in the order.
+if not settings.get("NODE_LOG_PATH"):
+    settings.NODE_LOG_PATH = NODE_LOG_PATH
