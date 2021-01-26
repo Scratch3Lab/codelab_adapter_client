@@ -148,7 +148,7 @@ class MessageNode(metaclass=ABCMeta):
         else:
             now = time.time()
             if (now - self.last_pub_time > 1):
-                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})" # 1 /s or ui
+                error_text = f"发送消息过于频繁!({self.bucket_token}, {self.bucket_fill_rate})" # 1 /s or ui
                 self.logger.error(error_text)
                 self.pub_notification(error_text, type="ERROR")
                 self.last_pub_time = time.time() 
@@ -286,7 +286,7 @@ class AdapterNode(MessageNode):
         '''
         started notify
         '''
-        self.pub_notification(f"{self.NODE_ID} started")
+        self.pub_notification(f"启动 {self.NODE_ID}")
         # request++ and uuid, Compatible with them.
         try:
             int_message = int(self.start_cmd_message_id)
@@ -631,7 +631,7 @@ class AdapterNode(MessageNode):
     def terminate(self, stop_cmd_message_id=None):
         if self._running:
             self.logger.info(f"stopped {self.NODE_ID}")
-            self.pub_notification(f"{self.NODE_ID} stopped")  # 会通知给 UI
+            self.pub_notification(f"停止 {self.NODE_ID}")  # 会通知给 UI
             if stop_cmd_message_id:
                 self.send_reply(stop_cmd_message_id)
             # super().terminate()

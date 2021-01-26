@@ -146,7 +146,7 @@ class MessageNodeAio(metaclass=ABCMeta):
         else:
             now = time.time()
             if (now - self.last_pub_time > 1):
-                error_text = f"publish error, rate limit!({self.bucket_token}, {self.bucket_fill_rate})"  # 1 /s or ui
+                error_text = f"发送消息过于频繁!({self.bucket_token}, {self.bucket_fill_rate})"  # 1 /s or ui
                 self.logger.error(error_text)
                 await self.pub_notification(error_text, type="ERROR")
                 self.last_pub_time = time.time()
@@ -270,7 +270,7 @@ class AdapterNodeAio(MessageNodeAio):
         todo await
         '''
         # request++ and uuid, Compatible with them.
-        await self.pub_notification(f"{self.NODE_ID} started")
+        await self.pub_notification(f"启动 {self.NODE_ID}")
         try:
             int_message = int(self.start_cmd_message_id)
             await self.send_reply(int_message)
@@ -431,7 +431,7 @@ class AdapterNodeAio(MessageNodeAio):
 
         if self._running:
             self.logger.info(f"stopped {self.NODE_ID}")
-            await self.pub_notification(f"{self.NODE_ID} stopped")  # 会通知给 UI
+            await self.pub_notification(f"停止 {self.NODE_ID}")  # 会通知给 UI
             if stop_cmd_message_id:
                 await self.send_reply(stop_cmd_message_id)
                 await asyncio.sleep(0.1)
