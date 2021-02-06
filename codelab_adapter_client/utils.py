@@ -213,6 +213,8 @@ def run_monitor(monitor_func, codelab_adapter_ip_address=None):
         node.run()
     except KeyboardInterrupt:
         node.terminate()  # Clean up before exiting.
+    finally:
+        logger.debug("stop monitor.")
 
 
 def send_simple_message(content):
@@ -227,7 +229,9 @@ def send_simple_message(content):
     with urllib.request.urlopen(full_url, context=ssl.SSLContext()) as response:
         # html = response.read()
         return "success!"
-    
+
+send_message = send_simple_message
+
 def save_base64_to_image(src, name):
     """
     ref: https://blog.csdn.net/mouday/article/details/93489508
