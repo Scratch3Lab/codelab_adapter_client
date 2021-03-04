@@ -203,6 +203,7 @@ def open_path_in_system_file_manager(path):
     subprocess.Popen([cmd, str(path)])
     return [cmd, str(path)]
 
+open_path = open_path_in_system_file_manager
 
 def run_monitor(monitor_func, codelab_adapter_ip_address=None):
     from codelab_adapter_client.simple_node import EimMonitorNode
