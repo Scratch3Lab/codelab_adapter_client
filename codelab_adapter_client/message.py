@@ -32,6 +32,7 @@ class HelloNode(AdapterNode):
         message = self.message_template()
         message["payload"]["content"] = str(content)
         self.publish(message)
+        time.sleep(0.05)  # 避免过快发送消息 20/s
     
     def _receive_message(self):
         try:
