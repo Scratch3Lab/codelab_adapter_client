@@ -35,7 +35,9 @@ class HelloNode(AdapterNode):
     
     def _receive_message(self):
         try:
-            return str(self.message_queue.get())
+            return str(self.message_queue.get_nowait())
+        except queue.Empty:
+            return None
         except:
             pass
 
