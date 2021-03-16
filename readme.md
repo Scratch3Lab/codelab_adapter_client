@@ -30,3 +30,17 @@ codelab-message-pub -j '{"topic":"eim/test","payload":{"content":"test contenst"
   "payload": { "content": "start", "node_name": "extension_eim" }
 }
 ```
+
+# FAQ
+## 在 Adapter jupyterlab 中升级 codelab_adapter_client
+```py
+import pip
+pip.main(['install', 'https://github.com/CodeLabClub/codelab_adapter_client_python/archive/master.zip'])
+```
+
+## EIM message
+与 Scratch EIM 积木配合使用
+
+```
+from codelab_adapter_client.message import receive_message, send_message
+```
