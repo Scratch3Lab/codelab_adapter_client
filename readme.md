@@ -36,6 +36,7 @@ codelab-message-pub -j '{"topic":"eim/test","payload":{"content":"test contenst"
 ```py
 import pip
 pip.main(['install', 'https://github.com/CodeLabClub/codelab_adapter_client_python/archive/master.zip'])
+# 安装完成后在jupyterlab restart 一下 kernel
 ```
 
 ## EIM message
