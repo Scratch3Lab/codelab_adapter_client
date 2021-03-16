@@ -37,9 +37,8 @@ class HelloNode(AdapterNode):
         try:
             return str(self.message_queue.get_nowait())
         except queue.Empty:
+            time.sleep(0.01)
             return None
-        except:
-            pass
 
 
 node = HelloNode()
