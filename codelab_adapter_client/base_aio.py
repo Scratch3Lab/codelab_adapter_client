@@ -257,10 +257,9 @@ class AdapterNodeAio(MessageNodeAio):
         self.start_cmd_message_id = start_cmd_message_id 
         self.logger.debug(f"start_cmd_message_id -> {self.start_cmd_message_id}")
         if is_started_now and self.start_cmd_message_id:
-            # self.event_loop.create_task(self.started())
-            pass # 放到程序中启动确认
+            time.sleep(0.1) # 等待建立连接
             self.event_loop.run_until_complete(self.started())
-
+            # asyncio.create_task(self.started())
         self.linda_wait_futures = []
         
 
