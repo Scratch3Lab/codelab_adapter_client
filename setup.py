@@ -63,6 +63,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/wwj718/codelab_adapter_client',
-    version='4.1.8',
+    version='4.2.0',
     zip_safe=False,
 )
