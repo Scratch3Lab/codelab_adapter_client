@@ -4,8 +4,7 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 include readme.md
-include codelab_adapter_client/data/*
-
+recursive-include codelab_adapter_client/data *
 
 recursive-include tests *
 recursive-exclude * __pycache__
