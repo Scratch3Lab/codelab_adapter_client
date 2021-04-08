@@ -468,7 +468,7 @@ class AdapterNodeAio(MessageNodeAio):
         return payload["message_id"]
 
 
-    async def _send_and_wait(self, operate, _tuple, timeout):
+    async def _send_and_wait_origin(self, operate, _tuple, timeout):
         # operate 枚举
         message_id = await self._send_to_linda_server(operate, _tuple)
         '''
@@ -487,6 +487,14 @@ class AdapterNodeAio(MessageNodeAio):
             # print('timeout!')
             raise asyncio.TimeoutError(f'timeout: {timeout}; message_id: {message_id}')
 
+    async def _send_and_wait(self, operate, _tuple, timeout):
+        try:
+            return await self._send_and_wait_origin(operate, _tuple, timeout)
+        except:
+            if operate in [LindaOperate.IN]:
+                self.logger.warning(f'cancel: {operate} {_tuple}')
+                await self._send_to_linda_server(LindaOperate.OUT, _tuple) # 不等回复
+                time.sleep(0.01)
 
     async def linda_in(self, _tuple: list, timeout=None):
         return await self._send_and_wait(LindaOperate.IN, _tuple, timeout)

@@ -396,7 +396,10 @@ class AdapterNode(MessageNode):
         return payload["message_id"]
 
 
-    def _send_and_wait(self, operate, _tuple, timeout):
+    def _send_and_wait_origin(self, operate, _tuple, timeout):
+        '''
+        失败之后out东西
+        '''
         # 确保 running， 接收到消息
         message_id = self._send_to_linda_server(operate, _tuple)
         '''
@@ -416,6 +419,14 @@ class AdapterNode(MessageNode):
         # todo exit exception
         # return result
 
+    def _send_and_wait(self, operate, _tuple, timeout):
+        try:
+            return self._send_and_wait_origin(operate, _tuple, timeout)
+        except:
+            if operate in [LindaOperate.IN]:
+                self.logger.warning(f'cancel: {operate} {_tuple}')
+                self._send_to_linda_server(LindaOperate.OUT, _tuple) # 不等回复
+                time.sleep(0.01)
 
     def linda_in(self, _tuple: list, timeout=None):
         '''
@@ -429,6 +440,10 @@ class AdapterNode(MessageNode):
         todo 
             返回future，由用户自己决定是否阻塞？ callback
             参数 return_future = False
+        
+        todo 
+            如果中断取消呢？
+                粗糙的做法 out 出去
         '''
         return self._send_and_wait(LindaOperate.IN, _tuple, timeout)
 
