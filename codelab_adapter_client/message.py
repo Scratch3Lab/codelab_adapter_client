@@ -24,9 +24,12 @@ class HelloNode(AdapterNode):
         content = payload["content"]
         self.message_queue.put(content)
         # response = sys.modules["eim_monitor"].monitor(content, self.logger)
-        payload["content"] = "ok"
-        message = {"payload": payload}
-        self.publish(message)
+        if payload.get("message_type") == "nowait":
+            return
+        else:
+            payload["content"] = "ok"
+            message = {"payload": payload}
+            self.publish(message)
 
     def _send_message(self, content):
         message = self.message_template()
