@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 REQUIRES_PYTHON = ">=3.6.0"
 # todo verison, pyzmq 18 19 20 ok
-requirements = ['pyzmq==20.0.0', 'msgpack-python==0.5.6', 'loguru==0.5.3', 'uflash==1.3.0', "zeroconf==0.28.8", "click==7.1.2", "dynaconf==3.1.2"]
+requirements = ['pyzmq==20.0.0', 'msgpack-python==0.5.6', 'loguru==0.5.3', 'uflash==1.3.0', "zeroconf==0.28.8", "click==7.1.2", "dynaconf==3.1.2", "paho-mqtt==1.5.1"]
 
 setup_requirements = [
     'pytest-runner',

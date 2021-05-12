@@ -14,6 +14,7 @@ class HelloCloudNode(MQTT_Node):
     def __init__(self, **kwargs):
         super().__init__(sub_topics=["eim/from_scratch"], **kwargs)
         self.message_queue = queue.Queue()
+        self._latest_send_time = 0
 
     def on_message(self, client, userdata, msg):
         logger.debug(f"topic->{msg.topic} ;payload-> {msg.payload}")
@@ -23,9 +24,15 @@ class HelloCloudNode(MQTT_Node):
         # logger.debug((client, userdata, msg))
 
     def _send_message(self, content):
+        '''
+        限制速率
+        '''
         self.publish("eim/from_python", str(content))
-        time.sleep(0.15)
-    
+        send_time = time.time()
+        if send_time -  self._latest_send_time < 0.15:
+            time.sleep(0.15)     
+        self._latest_send_time = send_time
+
     def _receive_message(self, block=False):
         if block:
             return self.message_queue.get()
