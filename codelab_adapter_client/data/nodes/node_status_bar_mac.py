@@ -1,10 +1,14 @@
 import queue
 import time
+import pathlib
 import rumps
 # import pyautogui  # todo 自动安装
 from codelab_adapter_client import AdapterNode
 from codelab_adapter_client.topic import NODES_OPERATE_TOPIC
-from codelab_adapter_client.utils import install_requirement, open_webui
+from codelab_adapter_client.utils import install_requirement, open_webui, open_path
+
+
+codelab_adapter_dir = pathlib.Path.home() / "codelab_adapter"
 
 class StatusBarNode(AdapterNode):
     '''
@@ -32,6 +36,10 @@ class StatusBarNode(AdapterNode):
             @rumps.clicked("Open WebUI")
             def webui(self, _):
                 open_webui()
+
+            @rumps.clicked("Open Adapter Home")
+            def open_adapter_home(self, _):
+                open_path(codelab_adapter_dir)
 
             @rumps.clicked("Exit Adapter")
             def exit(self, _):

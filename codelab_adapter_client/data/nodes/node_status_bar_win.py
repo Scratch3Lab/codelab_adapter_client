@@ -11,12 +11,12 @@ import sys
 import pathlib
 from codelab_adapter_client import AdapterNode
 from codelab_adapter_client.topic import NODES_OPERATE_TOPIC
-from codelab_adapter_client.utils import is_win, open_webui
+from codelab_adapter_client.utils import is_win, open_webui, open_path
 
 codelab_adapter_dir = pathlib.Path.home() / "codelab_adapter"
 app_icon = str(
     codelab_adapter_dir / 'src') + "/app." + ('ico' if is_win() else 'png')
-tray = sg.SystemTray(menu=['menu', ['Open WebUi', 'E&xit']], filename=app_icon)
+tray = sg.SystemTray(menu=['menu', ['Open WebUi', 'Open Adapter Home', 'E&xit']], filename=app_icon)
 # tray.ShowMessage('My Message', 'The tray icon is up and runnning!')
 
 
@@ -52,6 +52,11 @@ def main(**kwargs):
         if event == 'Open WebUi':
             # sg.popup('Menu item chosen', menu_item)
             open_webui()
+
+        if event == 'Open Adapter Home':
+            # sg.popup('Menu item chosen', menu_item)
+            open_path(codelab_adapter_dir)
+            
 
 
 if __name__ == "__main__":
