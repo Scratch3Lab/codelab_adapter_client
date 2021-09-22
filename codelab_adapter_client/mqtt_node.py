@@ -36,6 +36,10 @@ class MQTT_Node:
         logger.warning('disconnect')
 
     def on_message(self, client, userdata, msg):
+        '''
+        msg.topic string
+        msg.payload bytes
+        '''
         logger.debug(f"topic->{msg.topic} ;payload-> {msg.payload}")
         # import IPython;IPython.embed()
         # todo reply mqtt
@@ -43,6 +47,9 @@ class MQTT_Node:
 
     # client.publish(topic, payload=None, qos=0, retain=False, properties=None)
     def publish(self, topic, payload, **kwargs):
+        '''
+        原始结构 raw_payload bytes
+        '''
         self.client.publish(topic, payload=payload, **kwargs)
 
 
