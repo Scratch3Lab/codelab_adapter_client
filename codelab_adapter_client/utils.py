@@ -17,11 +17,11 @@ from enum import Enum
 from loguru import logger
 
 import uflash
-from codelab_adapter_client.config import settings, ADAPTER_HOME_DIR_NAME
+from codelab_adapter_client.config import settings, CODELAB_ADAPTER_DIR
 
 
 def get_adapter_home_path():
-    return ADAPTER_HOME_DIR_NAME
+    return CODELAB_ADAPTER_DIR
 
 def get_or_create_node_logger_dir():
     codelab_adapter_dir = get_adapter_home_path()
