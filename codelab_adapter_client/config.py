@@ -1,6 +1,42 @@
 import pathlib
 import sys
+import platform
+import pkg_resources
+
 from dynaconf import Dynaconf
+
+
+def is_win():
+    if platform.system() == "Windows":
+        return True
+
+
+def is_mac():
+    if platform.system() == "Darwin":
+        # which python3
+        # 不如用PATH python
+        return True
+
+
+def is_linux():
+    if platform.system() == "Linux":
+        return True
+
+
+def look_up_root():
+    """
+    adapter home root dir
+    """
+    python_path = sys.executable  # str
+    if is_mac():
+        # app、 app_packages、 Support(mac)/python(win)
+        resources_dir = pathlib.Path(python_path).parents[2]
+    if is_win():
+        resources_dir = pathlib.Path(python_path).parents[1]
+    if is_linux():
+        # 作为 root
+        resources_dir = pathlib.Path.home()
+    return resources_dir
 
 def is_in_china():
     from time import gmtime, strftime
@@ -10,13 +46,10 @@ def is_in_china():
         return True
 
 
-# user_settings_file = '~/codelab_adapter/user_settings.toml'
-ADAPTER_HOME = pathlib.Path.home() / "codelab_adapter"  #  todo 从环境变量获取
-ADAPTER_HOME.mkdir(parents=True, exist_ok=True)
-NODE_LOG_PATH = ADAPTER_HOME / "node_log"
-NODE_LOG_PATH.mkdir(parents=True, exist_ok=True)
-# 确保NODE_LOG_PATH存在
-# 配置好用户目录
+ADAPTER_HOME_DIR_NAME = "adapter_home"
+ROOT = look_up_root()
+CODELAB_ADAPTER_DIR = ROOT / ADAPTER_HOME_DIR_NAME
+ADAPTER_HOME = CODELAB_ADAPTER_DIR  # 如果不存在， 就不存在
 
 user_settings_file = ADAPTER_HOME / 'user_settings.toml'
 
@@ -29,6 +62,14 @@ else:
 
 if user_settings_file.is_file():
     settings_files.append(str(user_settings_file))
+else:
+    print("未找到 user_settings_file")
+    path = pathlib.Path(pkg_resources.resource_filename('codelab_adapter_client', f"data/user_settings.toml"))
+    # 使用内置的
+    print("使用 codelab_adapter_client 内置的 data/user_settings.toml")
+    settings_files.append(str(path))
+
+# 内置的配置，最弱
 
 settings = Dynaconf(
     envvar_prefix="CODELAB",
@@ -44,7 +85,7 @@ if not settings.get("ZMQ_LOOP_TIME"):
     settings.ZMQ_LOOP_TIME = 0.02
 
 if not settings.get("ADAPTER_HOME_PATH"):  # 环境
-    settings.ADAPTER_HOME_PATH = str(pathlib.Path.home() / "codelab_adapter")
+    settings.ADAPTER_HOME_PATH = str(CODELAB_ADAPTER_DIR)
 
 sys.path.insert(1, settings.ADAPTER_HOME_PATH)
 
@@ -63,7 +104,7 @@ if not settings.get("PYTHON3_PATH"):
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load this files in the order.
 if not settings.get("NODE_LOG_PATH"):
-    settings.NODE_LOG_PATH = NODE_LOG_PATH
+    settings.NODE_LOG_PATH = ADAPTER_HOME / "node_log"
 
 
 # 获取TOKEN

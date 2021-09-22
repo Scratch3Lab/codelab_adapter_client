@@ -17,22 +17,15 @@ from enum import Enum
 from loguru import logger
 
 import uflash
-from codelab_adapter_client.config import settings
+from codelab_adapter_client.config import settings, ADAPTER_HOME_DIR_NAME
+
 
 def get_adapter_home_path():
-    # 肯定存在，import client时已经确保
-    dir = pathlib.Path.home() / "codelab_adapter"
-    # dir.mkdir(parents=True, exist_ok=True) # 不存在就创建
-    return dir
-
+    return ADAPTER_HOME_DIR_NAME
 
 def get_or_create_node_logger_dir():
-    '''
-    确保存在 ~/codelab_adapter/node_log
-    '''
     codelab_adapter_dir = get_adapter_home_path()
     dir = codelab_adapter_dir / "node_log"
-    # dir.mkdir(parents=True, exist_ok=True)
     return dir
 
 
@@ -161,7 +154,6 @@ def get_pip_mirrors():
 
 
 def install_requirement(requirement, use_cn_mirrors=True):
-    # adapter_home_path = get_or_create_codelab_adapter_dir()
     python_path = get_python3_path()
     pip_mirrors = get_pip_mirrors()  # maybe blank
     install_cmd = f'{python_path} -m pip install {" ".join(requirement)} {pip_mirrors} --upgrade'

@@ -1,0 +1,36 @@
+# doc: https://adapter.codelab.club/user_guide/settings/
+dynaconf_merge = true
+ADAPTER_MODE = 1  # user client
+# TOKEN = "df3fjw09w2rf"
+PRO_KEY = ""
+DEBUG = false
+# websocket/HTTP
+SOCKET_SERVER_PORT = 12358
+USE_SSL = true
+IS_WEBSOCKET_SAFE = false  # open for wss client
+OPEN_EIM_API = true
+OPEN_REST_API = false
+OPEN_WEBSOCKET_API = true
+AUTO_OPEN_WEBUI = true
+DEFAULT_ADAPTER_HOST = "codelab-adapter.codelab.club"
+WEB_UI_ENDPOINT = ""  # default: https://codelab-adapter.codelab.club:12358
+KEEP_LAST_CLIENT = false
+ALWAYS_KEEP_ADAPTER_RUNNING = true
+# OSC
+OPEN_OSC_SERVER = true
+OSC_PORT = 12361
+# zeromq message
+ZMQ_LOOP_TIME = 0.02
+OPEN_MESSAGE_HUB = false  # 0.0.0.0 or 127.0.0.1
+PYTHON3_PATH = ""
+RC_EXTENSIONS = ["extension_webUI_manager.py"]  # like linux rc.local, Run-ControlFiles
+RC_NODES = []
+# USE_CN_PIP_MIRRORS = false
+# Linda
+TUPLE_SPACE_MAX_LENGTH = 1000
+OPEN_LINDA_REST_API = true
+# Adapter new Version
+LATEST_VERSION = "https://adapter.codelab.club/about/latest_version.json"
+# INCREMENTAL_UPDATE
+ALLOW_INCREMENTAL_UPDATE = true
+INCREMENTAL_UPDATE_PACKAGE = "http://adapter.codelab.club/src/codelab_adapter_client-latest-py2.py3-none-any.whl"
